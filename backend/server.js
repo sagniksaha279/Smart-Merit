@@ -6,565 +6,322 @@ const bodyParser = require("body-parser");
 const OpenAI = require("openai");
 
 const app = express();
-module.exports = app;
+const PORT = process.env.PORT || 3000;
 
-const PORT =  3000;
-console.log(`http://localhost:${PORT}`);
-
-// Middleware
 app.use(cors());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
-const openai = new OpenAI({
-  apiKey: process.env.api_key_openAI
-});
-
-// MySQL Connection
-const db = mysql.createConnection({
+// Database connection with pooling
+const pool = mysql.createPool({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
-  port: process.env.DB_PORT
+  port: process.env.DB_PORT,
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0
 });
 
 // Test DB Connection
-db.connect((err) => {
+pool.getConnection((err, connection) => {
   if (err) {
     console.error("❌ DB connection failed:", err.message);
     process.exit(1);
   } else {
     console.log("✅ Connected to SmartMerit DB");
+    connection.release();
   }
 });
 
-// Login Routes
-app.post("/student", (req, res) => {
-
-  const { studentName, studentPassword, studentRoll } = req.body;
-
-  const query = "SELECT * FROM students WHERE name = ? AND password = ? AND rollNumber = ?";
-
-  db.query(query, [studentName, studentPassword, studentRoll], (err, results) => {
-
-    if (err) 
-        return res.status(500).json({ 
-            success: false, 
-            error: "Database error" 
-        });
-    if (results.length > 0) {
-      res.json({ 
-            success: true, 
-            message: "Student login successful", 
-            data: results[0] 
-        });
-    } else {
-        res.json({    
-            success: false, 
-            message: "Invalid student credentials" 
-        });
-    }
-  });
-});
-
-app.post("/teacher", (req, res) => {
-
-  const { teacherName, teacherPassword, teacherBatch } = req.body;
-
-  const query = "SELECT * FROM teachers WHERE name = ? AND password = ? AND batchId = ?";
-
-  db.query(query, [teacherName, teacherPassword, teacherBatch], (err, results) => {
-
-    if (err) 
-      return res.status(500).json({ 
-          success: false, 
-          error: "Database error" 
-      });
-  if (results.length > 0) {
-    res.json({ 
-          success: true, 
-          message: "Teacher login successful", 
-          data: results[0] 
-      });
-  } else {
-      res.json({    
-          success: false, 
-          message: "Invalid Teacher credentials" 
-      });
-  }
-  });
-});
-
-app.post("/school", (req, res) => {
-
-  const { schoolName, schoolPassword, schoolId } = req.body;
-
-  const query = "SELECT * FROM schools WHERE schoolName = ? AND password = ? AND schoolId = ?";
-
-  db.query(query, [schoolName, schoolPassword, schoolId], (err, results) => {
-    if (err) 
-        return res.status(500).json({ 
-    success: false, 
-    error: "Database error" 
+// Helper function for database queries
+const query = (sql, values) => {
+  return new Promise((resolve, reject) => {
+    pool.query(sql, values, (err, results) => {
+      if (err) {
+        console.error("Database error:", err);
+        return reject(err);
+      }
+      resolve(results);
     });
+  });
+};
+
+
+// ----REGISTER PORTAL----
+app.post("/student", async (req, res) => {
+  try {
+    const { studentName, studentPassword, studentRoll, schoolName } = req.body;
+    if (!studentName || !studentPassword || !studentRoll) {
+      return res.status(400).json({ success: false, message: "All fields are required" });
+    }
+
+    const results = await query(
+      "SELECT * FROM students WHERE name = ? AND password = ? AND rollNumber = ? AND schoolName = ?",
+      [studentName, studentPassword, studentRoll, schoolName]
+    );
+
+    if (results.length > 0) {
+      res.json({ success: true, message: "Student login successful", data: results[0] });
+    } else {
+      res.status(401).json({ success: false, message: "Invalid student credentials" });
+    }
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Database error", error: err.message });
+  }
+});
+
+app.post("/teacher", async (req, res) => {
+  try {
+    const { teacherName, teacherPassword, teacherBatch, teacherSchool } = req.body;
+    const results = await query(
+      "SELECT * FROM teachers WHERE name = ? AND password = ? AND batchId = ? schoolName = ?",
+      [teacherName, teacherPassword, teacherBatch, teacherSchool]
+    );
+
+    if (results.length > 0) {
+      res.json({ success: true, message: "Teacher login successful", data: results[0] });
+    } else {
+      res.status(401).json({ success: false, message: "Invalid teacher credentials" });
+    }
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Database error", error: err.message });
+  }
+});
+
+app.post("/school", async (req, res) => {
+  try {
+    const { schoolName, schoolPassword, schoolId } = req.body;
+    const results = await query("SELECT * FROM schools WHERE schoolName = ? AND password = ? AND schoolId = ?", [schoolName, schoolPassword, schoolId]);
     if (results.length > 0) {
       res.json({ success: true, message: "School login successful", data: results[0] });
     } else {
-      res.json({ success: false, message: "Invalid school credentials" });
+      res.status(401).json({ success: false, message: "Invalid school credentials" });
     }
-  });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Database error", error: err.message });
+  }
 });
 
-app.get("/studentdetails", (req, res) => {
-  const roll = req.query.roll;
-  if (!roll) return res.status(400).json({ success: false, message: "Roll number required" });
-
-  const query = "SELECT * FROM students WHERE rollNumber = ?";
-  const perfQuery = "SELECT * FROM performance WHERE rollNumber = ?";
-
-  db.query(query, [roll], (err, studentResult) => {
-    if (err) {
-      return res.status(500).json({ success: false, message: "Database error" });
-    }
-    if (studentResult.length === 0) {
-      return res.status(404).json({ success: false, message: "Student not found" });
-    }
-    
-    db.query(perfQuery, [roll], (err2, perfResult) => {
-      if (err2) {
-        return res.status(500).json({ success: false, message: "Error fetching performance" });
-      }
-
-      res.json({
-        success: true,
-        student: studentResult[0],
-        performance: perfResult
-      });
-    });
-  });
+//-------------TEACHER PORTAL------------
+app.post("/upload-marks", async (req, res) => {
+  try {
+    const { studentRoll, subject, marks, behaviour, attendance, schoolName } = req.body;
+    await query(`INSERT INTO performance (rollNumber, subject, marks, behaviour, attendance, schoolName)
+                 VALUES (?, ?, ?, ?, ?, ?)
+                 ON DUPLICATE KEY UPDATE marks = VALUES(marks), behaviour = VALUES(behaviour), attendance = VALUES(attendance)`,
+                [studentRoll, subject, marks, behaviour, attendance, schoolName]);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error uploading marks", error: err.message });
+  }
 });
 
-// Add and Delete Students
-app.post("/add-student", (req, res) => {
-  const { name, rollNumber, password, section, class: studentClass } = req.body;
+app.post("/daily-attendance", async (req, res) => {
+  try {
+    const { studentRoll, date, subject, schoolName } = req.body;
+    const existing = await query("SELECT * FROM attendance_log WHERE studentRoll = ? AND subject = ? AND date = ? AND schoolName = ?",
+      [studentRoll, subject, date, schoolName]);
 
-  const query = "INSERT INTO students (name, rollNumber, password, section, class) VALUES (?, ?, ?, ?, ?)";
-
-  db.query(query, [name, rollNumber, password, section, studentClass], (err) => {
-    if (err) 
-        return res.status(500).json({ 
-            success: false, 
-            message: "Error adding student", 
-            error: err 
-        });
-    res.json({ 
-        success: true, 
-        message: "Student added successfully" 
-    });
-  });
-});
-
-app.post("/delete-student", (req, res) => {
-  const { studentRoll, studentName } = req.body;
-
-  const query = "DELETE FROM students WHERE rollNumber = ? AND name = ?";
-
-  db.query(query, [studentRoll, studentName], (err) => {
-    if (err) 
-        return res.status(500).json({ 
-    success: false, 
-    message: "Error deleting student" 
-    });
-    res.json({ 
-        success: true, 
-        message: "Student deleted successfully" 
-    });
-  });
-});
-
-// Upload Marks
-app.post("/upload-marks", (req, res) => {
-  const { studentRoll, subject, marks, behaviour, attendance } = req.body;
-
-  const query = `
-    INSERT INTO performance (rollNumber, subject, marks, behaviour, attendance)
-    VALUES (?, ?, ?, ?, ?)
-    ON DUPLICATE KEY UPDATE
-      marks = VALUES(marks),
-      behaviour = VALUES(behaviour),
-      attendance = VALUES(attendance)
-  `;
-
-  db.query(query, [studentRoll, subject, marks, behaviour, attendance], (err) => {
-    if (err) {
-      return res.status(500).json({
-        success: false,
-        message: "Error uploading marks",
-        error: err
-      });
+    if (existing.length > 0) {
+      return res.status(400).json({ success: false, message: "Attendance already recorded" });
     }
 
+    await query("INSERT INTO attendance_log (studentRoll, subject, date, schoolName) VALUES (?, ?, ?, ?)", [studentRoll, subject, date, schoolName]);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error recording attendance", error: err.message });
+  }
+});
+
+app.post("/delete-attendance", async (req, res) => {
+  try {
+    const { date, studentRoll, subject, schoolName } = req.body;
+    const result = await query("DELETE FROM attendance_log WHERE date = ? AND studentRoll = ? AND subject = ? AND schoolName = ?",
+      [date, studentRoll, subject, schoolName]);
+    res.json({ success: result.affectedRows > 0 });
+  } catch (err) {
+    res.status(500).json({ success: false });
+  }
+});
+
+app.post("/add-student", async (req, res) => {
+  const { name, rollNumber, password, section, class: studentClass, schoolName } = req.body;
+  try {
+    await query("INSERT INTO students (name, rollNumber, password, section, class, schoolName) VALUES (?, ?, ?, ?, ?, ?)",
+      [name, rollNumber, password, section, studentClass, schoolName]);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ success: false });
+  }
+});
+
+app.post("/delete-student", async (req, res) => {
+  try {
+    const { studentRoll, studentName, schoolName } = req.body;
+    const result = await query("DELETE FROM students WHERE rollNumber = ? AND name = ? AND schoolName = ?",
+      [studentRoll, studentName, schoolName]);
+    res.json({ success: result.affectedRows > 0 });
+  } catch (err) {
+    res.status(500).json({ success: false });
+  }
+});
+
+app.get("/attendance-summary", async (req, res) => {
+  const { schoolName } = req.query;
+  try {
+    const results = await query("SELECT studentRoll, subject, COUNT(*) as total_days FROM attendance_log WHERE schoolName = ? GROUP BY studentRoll, subject", [schoolName]);
+    res.json({ success: true, summary: results });
+  } catch (err) {
+    res.status(500).json({ success: false });
+  }
+});
+
+app.get("/students", async (req, res) => {
+  const { schoolName } = req.query;
+  try {
+    const students = await query("SELECT name, rollNumber, section, class FROM students WHERE schoolName = ?", [schoolName]);
+    res.json({ success: true, students });
+  } catch (err) {
+    res.status(500).json({ success: false });
+  }
+});
+
+app.get("/class-toppers", async (req, res) => {
+  const { className, schoolName } = req.query;
+  try {
+    let sql = `SELECT s.name, s.rollNumber, s.class, s.section, AVG(p.marks) as avg_marks, SUM(p.marks) as total_marks
+               FROM students s JOIN performance p ON s.rollNumber = p.rollNumber
+               WHERE s.schoolName = ? AND p.schoolName = ?`;
+    const params = [schoolName, schoolName];
+
+    if (className) {
+      sql += ` AND s.class = ?`;
+      params.push(className);
+    }
+
+    sql += ` GROUP BY s.rollNumber ORDER BY avg_marks DESC LIMIT 10`;
+
+    const results = await query(sql, params);
     res.json({
       success: true,
-      message: "Marks uploaded/updated successfully"
+      toppers: results.map(r => ({ ...r, avg_marks: parseFloat(r.avg_marks) || 0, total_marks: parseInt(r.total_marks) || 0 }))
     });
-  });
+  } catch (err) {
+    res.status(500).json({ success: false });
+  }
 });
 
-// Attendance
-app.post("/daily-attendance", (req, res) => {
-
-  const { studentRoll, date, subject } = req.body;
-
-  const checkQuery = "SELECT * FROM attendance_log WHERE studentRoll = ? AND subject = ? AND date = ?";
-
-  db.query(checkQuery, [studentRoll, subject, date], (err, results) => {
-    if (err) 
-        return res.status(500).json({ 
-    success: false, 
-    message: "DB error", 
-    error: err 
-    });
-    if (results.length > 0) 
-        return res.status(400).json({ 
-            success: false,    
-            message: "Attendance already recorded for this date" 
-        });
-    const insertQuery = "INSERT INTO attendance_log (studentRoll, subject, date) VALUES (?, ?, ?)";
-
-    db.query(insertQuery, [studentRoll, subject, date], (insertErr) => {
-      if (insertErr) 
-        return res.status(500).json({  
-    success: false, 
-    message: "Error inserting attendance", 
-    error: insertErr 
-    });
-        res.json({ 
-            success: true, 
-            message: "Attendance recorded successfully" 
-        });
-    });
-  });
-});
-
-app.post("/delete-attendance", (req, res) => {
-
-  const { studentRoll, date, subject } = req.body;
-
-  const deleteQuery = "DELETE FROM attendance_log WHERE studentRoll = ? AND subject = ? AND date = ?";
-
-  db.query(deleteQuery, [studentRoll, subject, date], (err, result) => {
-    if (err)   
-        return res.status(500).json({ 
-    success: false, 
-    message: "Error deleting attendance", 
-    error: err 
-    });
-    if (result.affectedRows > 0) {
-      res.json({ 
-        success: true, 
-        message: "Attendance deleted successfully" 
-    });
-    } else {
-      res.status(404).json({ 
-        success: false, 
-        message: "No such attendance found" 
-    });
-    }
-  });
-});
-
-app.get("/class-toppers", (req, res) => {
-  const { className } = req.query;
-  
-  const query = `
-    SELECT s.name, s.rollNumber, s.class, s.section, 
-           SUM(p.marks) AS total_marks,
-           AVG(p.marks) AS avg_marks
-    FROM students s
-    JOIN performance p ON s.rollNumber = p.rollNumber
-    ${className ? 'WHERE s.class = ?' : ''}
-    GROUP BY s.rollNumber
-    ORDER BY avg_marks DESC
-    LIMIT 10
-  `;
-
-  db.query(query, className ? [className] : [], (err, results) => {
-    if (err) {
-      return res.status(500).json({ 
-        success: false, 
-        message: "Error fetching toppers",
-        error: err.message 
-      });
-    }
-    res.json({ 
-      success: true, 
-      toppers: results 
-    });
-  });
-});
-
-app.get("/attendance-summary", (req, res) => {
-
-  const query = "SELECT subject, studentRoll, COUNT(*) AS total_days FROM attendance_log GROUP BY subject, studentRoll";
-
-  db.query(query, (err, results) => {
-    if (err) 
-        return res.status(500).json({ 
-    success: false, 
-    message: "Error fetching summary" 
-    });
-    res.json({ 
-        success: true, 
-        summary: results 
-    });
-  });
-});
-
-// Performance
-app.get("/all-performance", (req, res) => {
-
-  const query = `SELECT subject, ROUND(AVG(marks), 2) AS avgMarks, ROUND(AVG(attendance), 2) AS avgAttendance FROM performance GROUP BY subject`;
-  
-  db.query(query, (err, results) => {
-    if (err) 
-        return res.json({ 
-        success: false, 
-        message: "Error fetching performance data" 
-    });
+app.get("/all-performance", async (req, res) => {
+  const { schoolName } = req.query;
+  try {
+    const results = await query(
+      `SELECT subject, AVG(marks) as avg_marks, AVG(attendance) as avg_attendance
+       FROM performance WHERE schoolName = ? GROUP BY subject`,
+      [schoolName]
+    );
     res.json({
       success: true,
       subjects: results.map(r => r.subject),
-      avgMarks: results.map(r => r.avgMarks),
-      avgAttendance: results.map(r => r.avgAttendance)
+      avgMarks: results.map(r => parseFloat(r.avg_marks)),
+      avgAttendance: results.map(r => parseFloat(r.avg_attendance))
     });
-  });
+  } catch (err) {
+    res.status(500).json({ success: false });
+  }
 });
 
-app.get("/performance-by-class", (req, res) => {
-
-  const { className, section } = req.query;
-
-  const query = `
-    SELECT p.subject, ROUND(AVG(p.marks), 2) AS avgMarks, ROUND(AVG(p.attendance), 2) AS avgAttendance
-    FROM performance p
-    JOIN students s ON p.rollNumber = s.rollNumber
-    WHERE s.class = ? AND s.section = ?
-    GROUP BY p.subject`;
-
-    db.query(query, [className, section], (err, results) => {
-    if (err) 
-        return res.status(500).json({ 
-            success: false, 
-            message: "Error loading class performance" 
-        });
-        res.json({
-        success: true,
-        subjects: results.map(r => r.subject),
-        avgMarks: results.map(r => r.avgMarks),
-        avgAttendance: results.map(r => r.avgAttendance)
-        });
-    });
-});
-
-// Teacher Management
+// --------------SCHOOL PORTAL---------------
 app.post("/add-teacher", async (req, res) => {
-
-  const { name, password, subject, batchId } = req.body;
-
-  const query = "INSERT INTO teachers (name, password, subject, batchId) VALUES (?, ?, ?, ?)";
-
-  db.query(query, [name, hashedPassword, subject, batchId], (err) => {
-    if (err) 
-        return res.status(500).json({ 
-        success: false, 
-        message: "Error adding teacher" 
-    });
-    res.json({ 
-        success: true, 
-        message: "Teacher added successfully" 
-    });
-  });
+  const { name, password, subject, batchId, schoolName } = req.body;
+  if (!name || !password || !subject || !batchId || !schoolName) {
+    return res.status(400).json({ success: false, message: "All fields are required" });
+  }
+  try {
+    await query("INSERT INTO teachers (name, password, subject, batchId, schoolName) VALUES (?, ?, ?, ?, ?)", [name, password, subject, batchId, schoolName]);
+    res.json({ success: true, message: "Teacher added" });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Failed to add teacher" });
+  }
 });
 
-app.post("/delete-teacher", (req, res) => {
-
-  const { name, batchId } = req.body;
-
-  const query = "DELETE FROM teachers WHERE name = ? AND batchId = ?";
-
-  db.query(query, [name, batchId], (err) => {
-    if (err) return res.status(500).json({ 
-        success: false, 
-        message: "Error deleting teacher" 
-    });
-    res.json({ 
-        success: true, 
-        message: "Teacher deleted successfully" 
-    });
-  });
+app.post("/delete-teacher", async (req, res) => {
+  const { name, batchId, schoolName } = req.body;
+  try {
+    const result = await query("DELETE FROM teachers WHERE name = ? AND batchId = ? AND schoolName = ?", [name, batchId, schoolName]);
+    res.json({ success: result.affectedRows > 0 });
+  } catch (err) {
+    res.status(500).json({ success: false });
+  }
 });
 
-app.get("/teachers", (req, res) => {
-
-  db.query("SELECT name, subject, batchId FROM teachers", (err, results) => {
-    if (err) 
-        return res.status(500).json({ 
-    success: false, 
-    message: "Error fetching teachers" 
-    });
+app.get("/teachers", async (req, res) => {
+  try {
+    const results = await query("SELECT name, subject, batchId, schoolName FROM teachers");
     res.json({ success: true, teachers: results });
-  });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error fetching teachers" });
+  }
 });
 
-app.get("/student-count", (req, res) => {
-
-  db.query("SELECT COUNT(*) AS count FROM students", (err, result) => {
-    if (err) 
-        return res.status(500).json({ 
-            success: false 
-        });
-    res.json({ 
-        success: true, 
-        count: result[0].count 
+app.get("/student-count", async (req, res) => {
+  const { schoolName } = req.query;
+  try {
+    const results = await query("SELECT name, class FROM students WHERE schoolName = ? ORDER BY class ASC", [schoolName]);
+    const grouped = {};
+    results.forEach(student => {
+      if (!grouped[student.class]) grouped[student.class] = { count: 0, students: [] };
+      grouped[student.class].count++;
+      grouped[student.class].students.push(student.name);
     });
-  });
+    res.json({ success: true, classes: grouped });
+  } catch (err) {
+    res.status(500).json({ success: false });
+  }
 });
 
-app.get("/teacher-performance", (req, res) => {
-  const query = `
-    SELECT t.name, t.subject, t.batchId, COUNT(s.rollNumber) AS studentCount
-    FROM teachers t
-    LEFT JOIN students s ON s.batchId = t.batchId
-    GROUP BY t.name, t.subject, t.batchId`;
-    
-    db.query(query, (err, results) => {
-    if (err)  
-        return res.status(500).json({ 
-            success: false 
-        });
-    res.json({ 
-        success: true, 
-        teachers: results 
-    });
-  });
+app.get("/performance-by-class", async (req, res) => {
+  const { schoolName } = req.query;
+  try {
+    const queryStr = `SELECT s.class AS className, COUNT(s.rollNumber) AS studentCount, t.name AS teacherName, t.subject FROM students 
+    s LEFT JOIN teachers t ON s.class = t.batchId AND s.schoolName = t.schoolName WHERE s.schoolName = ? GROUP BY s.class, t.name, t.subject ORDER BY s.class ASC`;
+    const results = await query(queryStr, [schoolName]);
+    res.json({ success: true, performance: results });
+  } catch (err) {
+    res.status(500).json({ success: false });
+  }
 });
 
-app.get("/teacher-attendance-report", (req, res) => {
+app.get("/teacher-performance", async (req, res) => {
+  const { schoolName } = req.query;
+  try {
+    const queryStr = `SELECT t.name, t.subject, t.batchId, COUNT(s.rollNumber) AS studentCount FROM teachers t LEFT JOIN students s ON s.class = t.batchId AND s.schoolName = t.schoolName WHERE t.schoolName = ? GROUP BY t.name, t.subject, t.batchId`;
+    const results = await query(queryStr, [schoolName]);
+    res.json({ success: true, teachers: results });
+  } catch (err) {
+    res.status(500).json({ success: false });
+  }
+});
 
-  const query = "SELECT name, date FROM teacher_attendance ORDER BY date DESC";
-
-  db.query(query, (err, results) => {
-    if (err) 
-        return res.status(500).json({ 
-            success: false, 
-            message: "Error fetching attendance" 
-        });
+app.get("/teacher-attendance-report", async (req, res) => {
+  const { schoolName } = req.query;
+  try {
+    const results = await query("SELECT name, date FROM teacher_attendance WHERE schoolName = ? ORDER BY date DESC", [schoolName]);
     res.json({ success: true, attendance: results });
-  });
+  } catch (err) {
+    res.status(500).json({ success: false });
+  }
 });
 
-app.post("/mark-teacher-attendance", (req, res) => {
-
-  const { name, date } = req.body;
-
-  const query = "INSERT IGNORE INTO teacher_attendance (name, date) VALUES (?, ?)";
-
-  db.query(query, [name, date], (err) => {
-    if (err) 
-        return res.status(500).json({ 
-            success: false,     
-            message: "Error marking attendance" 
-        });
-    res.json({ 
-        success: true, 
-        message: "Attendance marked successfully" 
-    });
-  });
-});
-
-// AI Feedback
-app.post("/ai-feedback", async (req, res) => {
-
-  const { name, rollNumber, performance } = req.body;
-
-  const subjectSummary = performance.map(p => `${p.subject}: ${p.marks} marks, ${p.attendance}% attendance, behaviour: ${p.behaviour}`).join("\n");
-  const prompt = `Student Name: ${name} 
-  Performance Summary:${subjectSummary}\n
-  Provide a short, encouraging feedback with study suggestions if needed. Keep it friendly and under 100 words.`;
-
-
-  const cacheQuery = "SELECT feedback FROM feedback_cache WHERE rollNumber = ?";
-
-  db.query(cacheQuery, [rollNumber], async (err, results) => {
-
-    if (err) return res.status(500).json({ success: false, message: "DB error checking cache" });
-
-    if (results.length > 0) return res.json({ success: true, feedback: results[0].feedback });
-
-    try {
-      const gptResponse = await openai.chat.completions.create({ 
-        model: "gpt-4o-mini", 
-            messages: [{ 
-                role: "user", 
-                content: prompt 
-            }] 
-        });
-        
-        const feedback = gptResponse.choices[0].message.content;
-        
-        const insertQuery = "INSERT INTO feedback_cache (rollNumber, feedback) VALUES (?, ?)";
-        
-        db.query(insertQuery, [rollNumber, feedback], (insertErr) => {
-        if (insertErr) 
-            console.error("Failed to cache feedback:", insertErr);
-        });
-      res.json({ 
-        success: true, 
-        feedback 
-    });
-    } catch (error) {
-      console.error("AI error:", error);
-
-      let fallback = "You're doing great! Keep working hard, and focus on subjects that need improvement. 😊";
-      if (error.code === "insufficient_quota") 
-        fallback += " (Note: This is a general message due to free-tier usage)";
-      res.json({ 
-        success: true, 
-        feedback: fallback 
-    });
-    }
-  });
-});
-
-
-app.post("/submit-feedback", (req, res) => {
-    const { feedback } = req.body;
-
-    if (!feedback || feedback.trim() === "") {
-        return res.status(400).json({ 
-            success: false, 
-            message: "Feedback cannot be empty." 
-        });
-    }
-
-    const query = "INSERT INTO feedback (message) VALUES (?)";
-
-    db.query(query, [feedback], (err) => {
-        if (err) {
-            console.error("❌ Error saving feedback:", err);
-            return res.status(500).json({ 
-                success: false, 
-                message: "Database error while saving feedback." 
-            });
-        }
-
-        res.json({ 
-            success: true, 
-            message: "✅ Feedback submitted successfully!" 
-        });
-    });
+app.post("/mark-teacher-attendance", async (req, res) => {
+  const { name, date, schoolName } = req.body;
+  try {
+    await query("INSERT IGNORE INTO teacher_attendance (name, date, schoolName) VALUES (?, ?, ?)", [name, date, schoolName]);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ success: false });
+  }
 });
 
 
@@ -575,5 +332,5 @@ app.get("/", (req, res) => {
 
 // Start Server
 app.listen(PORT, () => {
-  console.log(`🚀 SmartMerit server running at http://localhost:${PORT}`);
+  console.log(`🚀 Server running on http://localhost:${PORT}`);
 });
