@@ -6,11 +6,20 @@ const bodyParser = require("body-parser");
 const OpenAI = require("openai");
 
 const app = express();
+module.exports = app;
+
 const PORT =  3000;
 console.log(`http://localhost:${PORT}`);
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: [
+    "https://smart-merit.vercel.app", // Your frontend domain (if different)
+    "http://localhost:3000"           // For local testing
+  ],
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  credentials: true
+}));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
@@ -20,11 +29,11 @@ const openai = new OpenAI({
 
 // MySQL Connection
 const db = mysql.createConnection({
-  host:process.env.DB_HOST,
-  user:process.env.DB_USER,
-  password:process.env.DB_PASSWORD,
-  database:process.env.DB_NAME,
-  port:process.env.DB_PORT
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
+  port: process.env.DB_PORT
 });
 
 // Test DB Connection
@@ -113,6 +122,7 @@ app.post("/school", (req, res) => {
     }
   });
 });
+
 app.get("/studentdetails", (req, res) => {
   const roll = req.query.roll;
   if (!roll) return res.status(400).json({ success: false, message: "Roll number required" });
