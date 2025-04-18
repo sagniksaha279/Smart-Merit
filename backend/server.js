@@ -20,11 +20,11 @@ const openai = new OpenAI({
 
 // MySQL Connection
 const db = mysql.createConnection({
-  host:"localhost",// process.env.DB_HOST,
-  user:"root", //process.env.DB_USER,
-  password: "1234",//process.env.DB_PASSWORD,
-  database: "freedb_smartmerit",//process.env.DB_NAME,
-  port: "3306",//process.env.DB_PORT
+  host:process.env.DB_HOST,
+  user:process.env.DB_USER,
+  password:process.env.DB_PASSWORD,
+  database:process.env.DB_NAME,
+  port:process.env.DB_PORT
 });
 
 // Test DB Connection
