@@ -12,14 +12,7 @@ const PORT =  3000;
 console.log(`http://localhost:${PORT}`);
 
 // Middleware
-app.use(cors({
-  origin: [
-    "https://smart-merit.vercel.app", // Your frontend domain (if different)
-    "http://localhost:3000"           // For local testing
-  ],
-  methods: ["GET", "POST", "PUT", "DELETE"],
-  credentials: true
-}));
+app.use(cors());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
