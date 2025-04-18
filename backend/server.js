@@ -131,7 +131,6 @@ app.get("/studentdetails", (req, res) => {
       return res.status(404).json({ success: false, message: "Student not found" });
     }
     
-
     db.query(perfQuery, [roll], (err2, perfResult) => {
       if (err2) {
         return res.status(500).json({ success: false, message: "Error fetching performance" });
@@ -148,12 +147,11 @@ app.get("/studentdetails", (req, res) => {
 
 // Add and Delete Students
 app.post("/add-student", (req, res) => {
+  const { name, rollNumber, password, section, class: studentClass } = req.body;
 
-  const { name, rollNumber, password, section } = req.body;
+  const query = "INSERT INTO students (name, rollNumber, password, section, class) VALUES (?, ?, ?, ?, ?)";
 
-  const query = "INSERT INTO students (name, rollNumber, password, section) VALUES (?, ?, ?, ?)";
-
-  db.query(query, [name, rollNumber, password, section], (err) => {
+  db.query(query, [name, rollNumber, password, section, studentClass], (err) => {
     if (err) 
         return res.status(500).json({ 
             success: false, 
@@ -274,6 +272,36 @@ app.post("/delete-attendance", (req, res) => {
         message: "No such attendance found" 
     });
     }
+  });
+});
+
+app.get("/class-toppers", (req, res) => {
+  const { className } = req.query;
+  
+  const query = `
+    SELECT s.name, s.rollNumber, s.class, s.section, 
+           SUM(p.marks) AS total_marks,
+           AVG(p.marks) AS avg_marks
+    FROM students s
+    JOIN performance p ON s.rollNumber = p.rollNumber
+    ${className ? 'WHERE s.class = ?' : ''}
+    GROUP BY s.rollNumber
+    ORDER BY avg_marks DESC
+    LIMIT 10
+  `;
+
+  db.query(query, className ? [className] : [], (err, results) => {
+    if (err) {
+      return res.status(500).json({ 
+        success: false, 
+        message: "Error fetching toppers",
+        error: err.message 
+      });
+    }
+    res.json({ 
+      success: true, 
+      toppers: results 
+    });
   });
 });
 
