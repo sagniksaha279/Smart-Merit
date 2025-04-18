@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Merit</title>
+    <link rel="stylesheet" href="style.css" rel="preload" as="style">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="icon" href="tech_tots_logo.png">
+</head>
+<body>
+
+    <!--header-->
+    <div class="header">
+        <div class="quote">
+            <h2>Smart Merit - Bright Minds and Big Fun</h2>
+            <p>Smart Merit: Web-based System for Identifying Meritorious Students in Primary Education.</p> 
+        </div>
+        <div class="container">
+            <ul>
+                <li><a href="#main-container" target="_self">Home</a></li>
+                <li><a href="#how-it-works" target="_self">How it Works</a></li>
+                <li><a href="Register.html" target="_blank">Register</a></li>
+                <li><a href="#contact" target="_self">Contact</a></li>
+            </ul>
+        </div>
+    </div>    
+
+    <!--Main Content-->
+    <div class="main">
+
+        <!--making the get started part-->
+        <div class="main-container" id="main-container">
+            <h1>Empowering Education: Discover, Recognize, and Celebrate Meritorious Students</h1>
+            <p>Rewarding Excellence, Empowering Growth.</p>
+            <button><a href="Register.html" target="_blank">Get Started</a></button>
+        </div>
+
+        <!--Making the how it works part-->
+        <div class="how-it-works" id="how-it-works">
+            <button id="htw-button" data-htw-target="#htw-content"><i class="fa-solid fa-circle-info"></i>&nbsp;&nbsp;Click Me</button>
+            <div class="htw-content" id="htw-content">
+                <div class="htw-header">
+                    <h1>Know how the validation works</h1>
+                    <button data-htw-close class="close-htw-button">&times;</button>
+                </div>
+                <div class="htw-body">
+                    <ul>
+                        <li><b>Student Portal - </b> Students log in with their details to view their grades and receive 
+                            AI-driven performance insights.
+                        </li>
+                        <li><b>Parents Portal - </b> Parents can access academic records, AI suggestions, 
+                            and teacher feedback using student credentials.
+                        </li>
+                        <li><b>Teachers Portal - </b> Teachers manage student records, update contact details, 
+                            and get AI-based assistance for student improvement.
+                        </li>
+                        <li><b>Advanced Data Analytics - </b> The platform analyzes academic performance trends
+                             and highlights areas for development.
+                            </li>
+                        <li><b>Personalized AI Recommendations - </b> Machine learning models suggest tailored
+                             improvements for each student's growth path.
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div id="overlay"></div>
+        </div>
+
+        <!--Key Features-->
+        <h1 id="kf">Key Features</h1>
+        <div class="key-features">    
+            <div class="key-containers">
+                <h1>🎓</h1>
+                <h3>Merit Recognition</h3>
+                <hr id="line">
+                <p>Smart Merit uses intelligent algorithms to recognize and highlight outstanding 
+                    student performance across primary levels. By rewarding academic excellence early
+                    on, we help nurture confidence, motivate learners, 
+                    and build a culture of achievement. 🏅✨</p>
+            </div>
+            <div class="key-containers">
+                <h1>📊</h1>
+                <h3>Data-Driven Insights</h3>
+                <hr id="line">
+                <p>Get clear, easy-to-understand breakdowns of each student's performance
+                    across subjects. Identify strengths, spot areas needing support,and also
+                    make informed decisions that help every learner move forward with purpose. 🧠📘</p>
+            </div>
+            <div class="key-containers">
+                <h1>🌐</h1>
+                <h3>Accessible Anywhere</h3>
+                <hr id="line">
+                <p>With secure, real-time access from any device, students, parents,
+                    and teachers can stay informed and engaged—anytime, anywhere. 
+                    This seamless access helps foster stronger collaboration and keeps
+                     everyone on the same page. 🔐💡</p>
+            </div>
+        </div>
+
+        <!--VISION-->
+        <div class="our-vision">
+            <img src="Student-gif.gif" alt="Students image">
+            <h1>OUR AIM</h1>
+            <div class="our-aims">
+                <div class="aims">
+                    <h3>🌟<br>Identifying Bright Students</h3>
+                    <hr id="line">
+                    <p>Harness the power of data and AI to spot young talent early. By 
+                        recognizing potential at the right time, we can ensure every student receives the guidance, 
+                        support, and opportunities they need to shine. 🌱🎓</p>
+                </div>
+                <div class="aims">
+                    <h3>👨‍👩‍👧‍👦 <br>Supporting Parents and Teachers</h3>
+                    <hr id="line">
+                    <p>Create stronger connections between home and school. By delivering 
+                        clear, timely insights, we help parents and educators stay aligned, informed, and ready to support 
+                        each child's journey together. 💬📚</p>
+                </div>
+                <div class="aims">
+                    <h3>🏫<br> Uplifting Primary Education</h3>
+                    <hr id="line">
+                    <p>Transform the foundation of learning by equipping schools with a smart, 
+                        intuitive platform. Track progress, celebrate growth, and make data-driven 
+                        decisions that truly uplift every learner's experience. 🚀📈
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!--Services section remains-->
+        <div class="service-provided">
+            <h2>We offer Solutions</h2>
+            <div class="service-list">
+                <ul>
+                    <li><h4>95%</h4><p>Accuracy in Merit Detection</p></li>
+                    <li><h4>100%</h4><p>Student & Parent Engagement</p></li>
+                    <li><h4>24/7</h4><p>Smart Dashboard Access</p></li>
+                </ul>
+            </div>
+        </div>
+
+        <!--Feedback Form-->
+        <div class="feedback-form">
+            <h1>Send us your feedback</h1><br>
+            <form id="feedbackForm">
+                <div class="chat">
+                    <input type="text" id="feedback" placeholder="Enter your feedback here..." required>
+                    <button type="submit"><i class="fa-solid fa-paper-plane"></i> Send</button>
+                    <button type="reset"><i class="fa-solid fa-rotate-right"></i> Reset</button>
+                </div>
+                <p id="feedbackMessage" style="margin-top: 10px; color: green;"></p>
+            </form>
+        </div>
+
+    </div>
+
+    <!--footer-->
+    <div class="footer" id="contact">
+        <h2>Smart Merit - Fair, Fast, and Focused Recognition for Every Student</h2>
+        <div class="footer-links">
+            <p><a href="privacy-policy.html" target="_blank">Privacy Policy</a><a href="terms.html" target="_blank">Terms & Conditions</a><a href="mailto:sahasagnik279@gmail.com">Mail us</a></p>
+        </div>
+        <p>&copy; All rights reserved by Tech Tots  | Research Poster-2025</p>
+        <p id="own-saying">Built with ❤️ & Code - <span class="color-tech-tots"><a href="details-us.html">Tech Tots</a></span></p>
+    </div>
+
+    <!--link js file-->
+    <script src="script.js"></script>
+</body>
+</html>
