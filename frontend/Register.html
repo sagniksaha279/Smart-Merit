@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register Yourself</title>
+    <link rel="stylesheet" href="Register.css">
+    <link rel="icon" href="tech_tots_logo.png">
+</head>
+<body>
+    <h1>Register Yourself</h1>
+    <center>
+        <p>
+            "Start your journey with us today, because every great story begins with a simple step. 🚀✨ Register 
+            now and be part of something amazing!"
+        </p>
+    </center>
+    <div class="reg-container">
+        <form onsubmit="loginStudent(event)">
+            <div class="reg">
+                <img src="stud2.gif" alt="student image">
+                <h4>Students / Parents Portal</h4>
+                <label for="studentName">Name : </label>
+                <input type="text" name="studentName" placeholder="Enter Name" id="studentName" required>
+                <label for="studentPassword">Password : </label>
+                <input type="password" name="studentPassword" placeholder="Enter Password" id="studentPassword" required>
+                <label for="studentSchool">School Name</label>
+                <input type="text" name="studentSchool" placeholder="Enter School Name" id="studentSchool" required>
+                <label for="studentClass">Class : </label>
+                <input type="text" maxlength="2" id="studentClass" placeholder="12" required>
+                <label for="studentSection">Section : </label>
+                <input type="text" maxlength="1" id="studentSection" placeholder="A" required>
+                <label for="studentRoll">Roll Number : </label>
+                <input type="text" maxlength="10" name="studentRoll" placeholder="314***89*7" id="studentRoll" required><br><br>
+                <button type="submit">Submit</button>&nbsp;&nbsp;&nbsp;&nbsp;
+                <button type="reset">Reset</button>
+            </div>
+        </form>
+
+        <form onsubmit="loginTeacher(event)">
+            <div class="reg">
+                <img src="teacher.gif" alt="teacher image">
+                <h4>Teacher Portal</h4>
+                <label for="teacherName">Name : </label>
+                <input type="text" id="teacherName" placeholder="Enter Name" required>
+                <label for="teacherPassword">Password : </label>
+                <input type="password" id="teacherPassword" placeholder="Enter Password" required>
+                <label for="teacherSchool">School Name : </label>
+                <input type="text" id="teacherSchool" placeholder="Enter School Name" required>
+                <label for="teacherSubject">Subject : </label>
+                <input type="text" id="teacherSubject" placeholder="Subject Name" required>
+                <label for="teacherBatch">Batch Id : </label>
+                <input type="text" maxlength="6" name="teacherBatch" placeholder="12***6" required><br><br><br>
+                <button type="submit">Submit</button>&nbsp;&nbsp;&nbsp;&nbsp;
+                <button type="reset">Reset</button>
+            </div>
+        </form>
+
+        <form onsubmit="loginSchool(event)">
+            <div class="reg">
+                <img src="school.gif" alt="school image">
+                <h4>School / Institution Portal</h4>
+                <label for="schoolName">School Name : </label>
+                <input type="text" id="schoolName" placeholder="Enter School Name" required>
+                <label for="schoolPassword">Password : </label>
+                <input type="password" id="schoolPassword" placeholder="Enter Password" required>
+                <label for="schoolId">School Id : </label>
+                <input type="text" maxlength="6" name="schoolId" placeholder="12***6" required><br><br><br>
+                <button type="submit">Submit</button>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                <button type="reset">Reset</button>
+            </div>
+        </form>
+    </div>
+    <script>
+        const API = "http://localhost:3000"; // Replace with deployed API if needed
+    
+        function loginStudent(e) {
+          e.preventDefault();
+          const name = document.getElementById("studentName").value;
+          const password = document.getElementById("studentPassword").value;
+          const roll = document.getElementById("studentRoll").value;
+    
+          fetch(`${API}/student`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ studentName: name, studentPassword: password, studentRoll: roll })
+          })
+          .then(res => res.json())
+          .then(data => {
+            if (data.success) {
+                // ✅ Store the roll number in session storage
+                sessionStorage.setItem("studentRoll", roll);
+                alert(`✅ Welcome ${name} to the portal`);
+                window.location.href = "Student.html";
+            } else {
+              alert("❌ " + data.message);
+            }
+          });
+        }
+    
+        function loginTeacher(e) {
+          e.preventDefault();
+          const name = document.getElementById("teacherName").value;
+          const password = document.getElementById("teacherPassword").value;
+          const batch = document.querySelector("input[name='teacherBatch']").value;
+        
+          fetch(`${API}/teacher`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              teacherName: name,
+              teacherPassword: password,
+              teacherBatch: batch
+            })
+          })
+          .then(res => res.json())
+          .then(data => {
+            if (data.success) {
+              sessionStorage.setItem("teacherName", name);
+              sessionStorage.setItem("teacherBatch", batch); // Optional for future use
+              alert(`✅ Welcome ${name} to the portal`);
+              window.location.href = "Teacher.html";
+            } else {
+              alert("❌ " + data.message);
+            }
+          })
+          .catch(err => {
+            alert("Something went wrong. Please try again.");
+            console.error(err);
+          });
+        }
+    
+        function loginSchool(e) {
+          e.preventDefault();
+          const name = document.getElementById("schoolName").value;
+          const password = document.getElementById("schoolPassword").value;
+          const id = document.getElementById("schoolId").value;
+    
+          fetch(`${API}/school`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ schoolName: name, schoolPassword: password, schoolId: id })
+          })
+          .then(res => res.json())
+          .then(data => {
+            if (data.success) {
+                alert(`✅ Welcome ${name} to the portal`);
+                window.location.href = "School.html";
+            } else {
+              alert("❌ " + data.message);
+            }
+          });
+        }
+      </script>
+</body>
+</html>

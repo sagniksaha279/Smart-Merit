@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>🏫 School Dashboard</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 2rem;
+      background: #f4f7f9;
+      color: #333;
+    }
+    .section {
+      background: white;
+      padding: 1rem;
+      border-radius: 10px;
+      margin-bottom: 2rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    input {
+      padding: 0.5rem;
+      margin: 0.5rem;
+    }
+    button {
+      padding: 0.5rem 1rem;
+      margin-top: 0.5rem;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+    }
+    th, td {
+      padding: 0.75rem;
+      text-align: center;
+      border: 1px solid #ccc;
+    }
+    thead {
+      background-color: #2c3e50;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <h1>🏫 School Dashboard</h1>
+
+  <div class="section">
+    <h2>➕ Add Teacher</h2>
+    <form id="addTeacherForm">
+      <input type="text" name="name" placeholder="Name" required>
+      <input type="password" name="password" placeholder="Password" required>
+      <input type="text" name="subject" placeholder="Subject" required>
+      <input type="text" name="batchId" placeholder="Batch ID" required>
+      <button type="submit">Add Teacher</button>
+    </form>
+  </div>
+
+  <div class="section">
+    <h2>❌ Delete Teacher</h2>
+    <form id="deleteTeacherForm">
+      <input type="text" name="name" placeholder="Name" required>
+      <input type="text" name="batchId" placeholder="Batch ID" required>
+      <button type="submit">Delete Teacher</button>
+    </form>
+  </div>
+
+  <div class="section">
+    <h2>📋 All Teachers</h2>
+    <button onclick="fetchTeachers()">Refresh List</button>
+    <ul id="teacherList">Loading...</ul>
+  </div>
+
+  <div class="section">
+    <h2>📈 Student Performance Overview</h2>
+    <button onclick="fetchPerformance()">Load Performance</button>
+    <div id="performanceOverview">Loading...</div>
+  </div>
+
+  <div class="section">
+    <h2>👥 Total Students</h2>
+    <button onclick="fetchStudentCount()">Get Student Count</button>
+    <p id="studentCount">Loading...</p>
+  </div>
+
+  <div class="section">
+    <h2>📘 Class-Wise Performance</h2>
+    <form id="classPerformanceForm">
+      <input type="text" name="className" placeholder="Class (e.g. 10)" required>
+      <input type="text" name="section" placeholder="Section (e.g. A)" required>
+      <button type="submit">Check</button>
+    </form>
+    <div id="classPerformanceResult">Loading...</div>
+  </div>
+  
+  <div class="section">
+    <h2>📊 Teacher-wise Performance</h2>
+    <button onclick="fetchTeacherPerformance()">View Details</button>
+    <div id="teacherPerformance">Loading...</div>
+  </div>
+
+  <div class="section">
+    <h2>📅 Teacher Attendance Report</h2>
+    <button onclick="fetchTeacherAttendance()">Load Report</button>
+    <div id="teacherAttendanceReport">Loading...</div>
+  </div>
+  
+  <div class="section">
+    <h2>✅ Teacher Attendance</h2>
+    <form id="teacherAttendanceForm">
+      <input type="text" name="name" placeholder="Teacher Name" required>
+      <input type="date" name="date" required>
+      <button type="submit">Mark Attendance</button>
+    </form>
+    <div id="attendanceMessage"></div>
+  </div>
+
+  <script>
+    const API = "http://localhost:3000";
+    const schoolName = sessionStorage.getItem("schoolName");
+    if (!schoolName) {
+      alert("🔐 Please log in as a school first.");
+      window.location.href = "Register.html";
+    }
+
+    function fetchTeachers() {
+      fetch(`${API}/teachers`)
+        .then(res => res.json())
+        .then(data => {
+          const list = document.getElementById("teacherList");
+          if (data.success) {
+            list.innerHTML = "";
+            data.teachers.forEach(t => {
+              const li = document.createElement("li");
+              li.textContent = `${t.name} - ${t.subject} (Batch: ${t.batchId})`;
+              list.appendChild(li);
+            });
+          } else {
+            list.innerHTML = "<li>Failed to load teachers</li>";
+          }
+        });
+    }
+
+    function fetchPerformance() {
+      fetch(`${API}/all-performance`)
+        .then(res => res.json())
+        .then(data => {
+          const div = document.getElementById("performanceOverview");
+          if (!data.success) return div.innerHTML = "Failed to load performance.";
+
+          let html = `<table><thead><tr><th>Subject</th><th>Avg Marks</th><th>Avg Attendance (%)</th></tr></thead><tbody>`;
+          data.subjects.forEach((subject, i) => {
+            html += `<tr><td>${subject}</td><td>${data.avgMarks[i]}</td><td>${data.avgAttendance[i]}</td></tr>`;
+          });
+          html += `</tbody></table>`;
+          div.innerHTML = html;
+        });
+    }
+
+    function fetchStudentCount() {
+      fetch(`${API}/student-count`)
+        .then(res => res.json())
+        .then(data => {
+          document.getElementById("studentCount").textContent = `Total Students: ${data.count}`;
+        });
+    }
+
+    function fetchTeacherAttendance() {
+      fetch(`${API}/teacher-attendance-report`)
+        .then(res => res.json())
+        .then(data => {
+          const div = document.getElementById("teacherAttendanceReport");
+          if (!data.success || !data.attendance.length) {
+            div.innerHTML = "No attendance records found.";
+            return;
+          }
+    
+          let html = `<table><thead><tr><th>Teacher Name</th><th>Date</th></tr></thead><tbody>`;
+          data.attendance.forEach(row => {
+            html += `<tr><td>${row.name}</td><td>${row.date}</td></tr>`;
+          });
+          html += `</tbody></table>`;
+          div.innerHTML = html;
+        });
+    }
+    
+    function fetchTeacherPerformance() {
+      fetch(`${API}/teacher-performance`)
+        .then(res => res.json())
+        .then(data => {
+          const div = document.getElementById("teacherPerformance");
+          if (!data.success) return div.innerHTML = "Failed to load.";
+          let html = `<table><thead><tr><th>Teacher</th><th>Subject</th><th>Batch</th><th>Students</th></tr></thead><tbody>`;
+          data.teachers.forEach(t => {
+            html += `<tr><td>${t.name}</td><td>${t.subject}</td><td>${t.batchId}</td><td>${t.studentCount}</td></tr>`;
+          });
+          html += `</tbody></table>`;
+          div.innerHTML = html;
+        });
+    }
+    
+
+    document.getElementById("addTeacherForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+      const payload = Object.fromEntries(new FormData(this));
+      fetch(`${API}/add-teacher`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      })
+      .then(res => res.json())
+      .then(data => {
+        alert(data.message);
+        this.reset();
+        fetchTeachers();
+      });
+    });
+
+    document.getElementById("deleteTeacherForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+      const payload = Object.fromEntries(new FormData(this));
+      fetch(`${API}/delete-teacher`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      })
+      .then(res => res.json())
+      .then(data => {
+        alert(data.message);
+        this.reset();
+        fetchTeachers();
+      });
+    });
+
+    document.getElementById("teacherAttendanceForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+      const payload = Object.fromEntries(new FormData(this));
+      fetch(`${API}/mark-teacher-attendance`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      })
+      .then(res => res.json())
+      .then(data => {
+        document.getElementById("attendanceMessage").textContent = data.message;
+        this.reset();
+      });
+    });
+
+    document.getElementById("classPerformanceForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+      const payload = Object.fromEntries(new FormData(this));
+      const query = `?className=${payload.className}&section=${payload.section}`;
+    
+      fetch(`${API}/performance-by-class${query}`)
+        .then(res => res.json())
+        .then(data => {
+          const div = document.getElementById("classPerformanceResult");
+          if (!data.success || !data.subjects.length) {
+            div.innerHTML = "No performance data found.";
+            return;
+          }
+    
+          let html = `<table><thead><tr><th>Subject</th><th>Avg Marks</th><th>Avg Attendance</th></tr></thead><tbody>`;
+          data.subjects.forEach((subject, i) => {
+            html += `<tr><td>${subject}</td><td>${data.avgMarks[i]}</td><td>${data.avgAttendance[i]}</td></tr>`;
+          });
+          html += `</tbody></table>`;
+          div.innerHTML = html;
+        });
+    });
+    
+
+    // Initial load
+    fetchTeachers();
+  </script>
+</body>
+</html>

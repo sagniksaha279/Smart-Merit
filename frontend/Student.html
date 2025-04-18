@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Student Dashboard</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f4f7f9;
+      margin: 2rem;
+      color: #333;
+    }
+
+    h1, h2 {
+      color: #2c3e50;
+    }
+
+    .student-info {
+      background: #ffffff;
+      padding: 1rem 1.5rem;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      margin-bottom: 2rem;
+    }
+
+    .student-info p {
+      font-size: 1.1rem;
+      margin: 0.5rem 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      border-radius: 10px;
+      overflow: hidden;
+      margin-top: 1rem;
+    }
+
+    th, td {
+      padding: 0.75rem 1rem;
+      text-align: center;
+    }
+
+    thead {
+      background: #2c3e50;
+      color: #fff;
+    }
+
+    tbody tr:nth-child(odd) {
+      background-color: #f0f2f5;
+    }
+    canvas {
+      max-width: 100%;
+      height: auto !important;
+    }
+    
+    /* Center the pie chart */
+    #pieContainer {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      max-width: 600px;
+      margin: 2rem auto 5rem auto;
+      padding: 1rem;
+      box-sizing: border-box;
+    }
+    
+    #pieContainer canvas {
+      max-width: 100%;
+      max-height: 100%;
+    }
+    #insights {
+      margin-top: 2rem;
+      padding: 1rem;
+      background: #e8f7e4;
+      border-left: 5px solid #2ecc71;
+      border-radius: 8px;
+    }
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      body {
+        margin: 1rem;
+      }
+    
+      h1 {
+        font-size: 1.6rem;
+      }
+    
+      h2 {
+        font-size: 1.3rem;
+      }
+    
+      .student-info {
+        padding: 1rem;
+      }
+    
+      .student-info p {
+        font-size: 1rem;
+      }
+    
+      table {
+        font-size: 0.9rem;
+      }
+    
+      th, td {
+        padding: 0.5rem;
+      }
+    
+      #insights {
+        font-size: 0.95rem;
+        padding: 0.75rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Welcome, <span id="studentName">Student</span> 🎓</h1>
+
+  <div class="student-info">
+    <p><strong>Class:</strong> <span id="studentClass"></span></p>
+    <p><strong>Section:</strong> <span id="studentSection"></span></p>
+    <p><strong>Roll No:</strong> <span id="studentRoll"></span></p>
+    <p><strong>School:</strong> <span id="studentSchool"></span></p>
+  </div>
+
+  <h2>Performance</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Subject</th>
+        <th>Marks</th>
+        <th>Behaviour</th>
+        <th>Attendance (%)</th>
+      </tr>
+    </thead>
+    <tbody id="performanceTable"></tbody>
+  </table>
+
+  <h2>Performance Charts</h2>
+  <canvas id="marksChart" height="100"></canvas>
+  <canvas id="attendanceChart" height="80"></canvas>
+  <div id="pieContainer">
+    <canvas id="pieChart"></canvas>
+  </div>
+
+  <div id="insights">
+    <strong>📌 AI Insight:</strong>
+    <p id="aiInsight">Analyzing your performance...</p>
+  </div>
+
+  <script>
+    const roll = sessionStorage.getItem('studentRoll');
+    if (!roll) {
+      alert("🔐 Please log in first.");
+      window.location.href = "Register.html";
+    }
+
+    fetch(`http://localhost:3000/student-details?roll=${roll}`)
+      .then(res => res.json())
+      .then(data => {
+        if (!data.success) throw new Error("Student not found");
+
+        const student = data.student;
+        const performance = data.performance;
+
+        document.getElementById('studentName').textContent = student.name;
+        document.getElementById('studentClass').textContent = student.class;
+        document.getElementById('studentSection').textContent = student.section;
+        document.getElementById('studentRoll').textContent = student.rollNumber;
+        document.getElementById('studentSchool').textContent = student.schoolName;
+
+        const subjects = [], marks = [], attendance = [];
+        const tbody = document.getElementById('performanceTable');
+        let totalMarks = 0;
+
+        performance.forEach(row => {
+          tbody.innerHTML += `
+            <tr>
+              <td>${row.subject}</td>
+              <td>${row.marks}</td>
+              <td>${row.behaviour}</td>
+              <td>${row.attendance}</td>
+            </tr>
+          `;
+          subjects.push(row.subject);
+          marks.push(row.marks);
+          attendance.push(row.attendance);
+          totalMarks += row.marks;
+        });
+
+        const avgMarks = totalMarks / marks.length;
+
+        // Marks Chart
+        new Chart(document.getElementById('marksChart'), {
+          type: 'bar',
+          data: {
+            labels: subjects,
+            datasets: [{ label: 'Marks', data: marks, backgroundColor: '#3498db' }]
+          },
+          options: {
+            plugins: {
+              title: { display: true, text: 'Marks per Subject', font: { size: 18 } },
+              legend: { display: false }
+            }
+          }
+        });
+
+        // Attendance Chart
+        new Chart(document.getElementById('attendanceChart'), {
+          type: 'line',
+          data: {
+            labels: subjects,
+            datasets: [{ label: 'Attendance (%)', data: attendance, borderColor: '#2ecc71', fill: false }]
+          },
+          options: {
+            plugins: {
+              title: { display: true, text: 'Attendance per Subject', font: { size: 18 } },
+              legend: { display: false }
+            }
+          }
+        });
+
+        // Pie Chart
+        new Chart(document.getElementById('pieChart'), {
+          type: 'pie',
+          data: {
+            labels: subjects,
+            datasets: [{
+              label: 'Marks Distribution',
+              data: marks,
+              backgroundColor: ['#1abc9c', '#2ecc71', '#3498db', '#9b59b6', '#f1c40f', '#e67e22', '#e74c3c', '#34495e']
+            }]
+          },
+          options: {
+            plugins: {
+              title: { display: true, text: 'Marks Distribution by Subject', font: { size: 18 } }
+            }
+          }
+        });
+
+        // Fetch AI Feedback (uses rollNumber now)
+        fetch("http://localhost:3000/ai-feedback", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name: student.name, rollNumber: student.rollNumber, performance })
+        })
+        .then(res => res.json())
+        .then(aiData => {
+          document.getElementById("aiInsight").textContent = aiData.feedback || "No feedback available.";
+        })
+        .catch(err => {
+          console.error("AI Feedback Error:", err);
+          document.getElementById("aiInsight").textContent = "Failed to fetch AI feedback.";
+        });
+
+      })
+      .catch(err => {
+        alert("❌ " + err.message);
+        window.location.href = "Register.html";
+      });
+  </script>
+</body>
+</html>
