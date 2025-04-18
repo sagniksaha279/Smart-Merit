@@ -6,7 +6,8 @@ const bodyParser = require("body-parser");
 const OpenAI = require("openai");
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT =  3000;
+console.log(`http://localhost:${PORT}`);
 
 // Middleware
 app.use(cors());
@@ -19,11 +20,11 @@ const openai = new OpenAI({
 
 // MySQL Connection
 const db = mysql.createConnection({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
-  port: process.env.DB_PORT
+  host:"localhost",// process.env.DB_HOST,
+  user:"root", //process.env.DB_USER,
+  password: "1234",//process.env.DB_PASSWORD,
+  database: "freedb_smartmerit",//process.env.DB_NAME,
+  port: "3306",//process.env.DB_PORT
 });
 
 // Test DB Connection
@@ -69,16 +70,27 @@ app.post("/teacher", (req, res) => {
 
   const { teacherName, teacherPassword, teacherBatch } = req.body;
 
-  const query = "SELECT * FROM teachers WHERE name = ? AND batchId = ?";
+  const query = "SELECT * FROM teachers WHERE name = ? AND password = ? AND batchId = ?";
 
-  db.query(query, [teacherName, teacherBatch], async (err, results) => {
+  db.query(query, [teacherName, teacherPassword, teacherBatch], (err, results) => {
 
-    if (err || results.length === 0) 
-        return res.status(400).json({ 
-    success: false, 
-    message: "Invalid credentials" 
-    });
-    res.json({ success: true, message: "Teacher login successful", data: results[0] });
+    if (err) 
+      return res.status(500).json({ 
+          success: false, 
+          error: "Database error" 
+      });
+  if (results.length > 0) {
+    res.json({ 
+          success: true, 
+          message: "Teacher login successful", 
+          data: results[0] 
+      });
+  } else {
+      res.json({    
+          success: false, 
+          message: "Invalid Teacher credentials" 
+      });
+  }
   });
 });
 
@@ -99,6 +111,35 @@ app.post("/school", (req, res) => {
     } else {
       res.json({ success: false, message: "Invalid school credentials" });
     }
+  });
+});
+app.get("/studentdetails", (req, res) => {
+  const roll = req.query.roll;
+  if (!roll) return res.status(400).json({ success: false, message: "Roll number required" });
+
+  const query = "SELECT * FROM students WHERE rollNumber = ?";
+  const perfQuery = "SELECT * FROM performance WHERE rollNumber = ?";
+
+  db.query(query, [roll], (err, studentResult) => {
+    if (err) {
+      return res.status(500).json({ success: false, message: "Database error" });
+    }
+    if (studentResult.length === 0) {
+      return res.status(404).json({ success: false, message: "Student not found" });
+    }
+    
+
+    db.query(perfQuery, [roll], (err2, perfResult) => {
+      if (err2) {
+        return res.status(500).json({ success: false, message: "Error fetching performance" });
+      }
+
+      res.json({
+        success: true,
+        student: studentResult[0],
+        performance: perfResult
+      });
+    });
   });
 });
 
@@ -143,21 +184,29 @@ app.post("/delete-student", (req, res) => {
 
 // Upload Marks
 app.post("/upload-marks", (req, res) => {
-
   const { studentRoll, subject, marks, behaviour, attendance } = req.body;
 
-  const query = "INSERT INTO performance (rollNumber, subject, marks, behaviour, attendance) VALUES (?, ?, ?, ?, ?)";
+  const query = `
+    INSERT INTO performance (rollNumber, subject, marks, behaviour, attendance)
+    VALUES (?, ?, ?, ?, ?)
+    ON DUPLICATE KEY UPDATE
+      marks = VALUES(marks),
+      behaviour = VALUES(behaviour),
+      attendance = VALUES(attendance)
+  `;
 
   db.query(query, [studentRoll, subject, marks, behaviour, attendance], (err) => {
-    if (err) 
-        return res.status(500).json({ 
-    success: false, 
-    message: "Error uploading marks", 
-    error: err 
-    });
-    res.json({ 
-        success: true, 
-        message: "Marks uploaded successfully" 
+    if (err) {
+      return res.status(500).json({
+        success: false,
+        message: "Error uploading marks",
+        error: err
+      });
+    }
+
+    res.json({
+      success: true,
+      message: "Marks uploaded/updated successfully"
     });
   });
 });
