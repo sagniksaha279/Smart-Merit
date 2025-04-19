@@ -222,6 +222,57 @@ app.post("/school", async (req, res) => {
   }
 });
 
+app.get("/all-performance", async (req, res) => {
+  try {
+    const { schoolName } = req.query;
+    
+    if (!schoolName) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "School name is required" 
+      });
+    }
+
+    const results = await query(
+      `SELECT 
+        p.subject,
+        AVG(p.marks) AS average_marks,
+        AVG(p.attendance) AS average_attendance
+      FROM performance p
+      WHERE p.schoolName = ?
+      GROUP BY p.subject
+      ORDER BY p.subject;`,
+      [schoolName]
+    );
+    
+    if (!results.length) {
+      return res.json({ 
+        success: true, 
+        message: "No performance records found",
+        subjects: [],
+        avgMarks: [],
+        avgAttendance: []
+      });
+    }
+    
+    res.json({
+      success: true,
+      subjects: results.map(r => r.subject),
+      avgMarks: results.map(r => parseFloat(r.average_marks)),
+      avgAttendance: results.map(r => parseFloat(r.average_attendance))
+    });
+    
+  } catch (err) {
+    console.error("Performance data error:", err);
+    res.status(500).json({ 
+      success: false, 
+      message: "Failed to fetch performance data",
+      error: err.message 
+    });
+  }
+});
+
+
 //-------------TEACHER PORTAL------------
 app.post("/upload-marks", async (req, res) => {
   try {
@@ -579,62 +630,6 @@ app.get("/teachers", async (req, res) => {
     res.status(500).json({ success: false, message: "Error fetching teachers", error: err.message });
   }
 });
-
-
-app.get("/all-performance", async (req, res) => {
-  try {
-    const { schoolName } = req.query;
-    
-    if (!schoolName) {
-      return res.status(400).json({ 
-        success: false, 
-        message: "School name is required" 
-      });
-    }
-
-    const results = await query(
-      `SELECT 
-      s.class,
-      AVG(p.marks) AS average_marks,
-      AVG(p.attendance) AS average_attendance,
-      COUNT(DISTINCT p.rollNumber) AS student_count
-      FROM performance p
-      JOIN students s ON p.rollNumber = s.rollNumber
-      WHERE p.schoolName = ?
-      GROUP BY s.class
-      ORDER BY s.class;
-      `,[schoolName]
-    );
-    
-    
-    if (!results.length) {
-      return res.json({ 
-        success: true, 
-        data: [],
-        message: "No performance records found" 
-      });
-    }
-    
-    res.json({
-      success: true,
-      data: results.map(row => ({
-        subject: row.subject,
-        class: row.class,
-        averageMarks: parseFloat(row.average_marks),
-        averageAttendance: parseFloat(row.average_attendance),
-        studentCount: row.student_count
-      }))
-    });
-  } catch (err) {
-    console.error("Performance data error:", err);
-    res.status(500).json({ 
-      success: false, 
-      message: "Failed to fetch performance data",
-      error: err.message 
-    });
-  }
-});
-
 
 app.get("/student-count", async (req, res) => {
   try {
