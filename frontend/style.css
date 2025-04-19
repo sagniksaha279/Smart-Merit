@@ -1,9 +1,11 @@
+* {
+    transition: all 0.3s ease;
+}
 body {
     margin: 0;
     padding: 0;
     background-color: #F7F1E1;
 }
-
 .header .quote {
     background-color: #0050D4;
     display: block;
@@ -48,6 +50,29 @@ body {
 .header .container ul li a:hover {
     color: #2D3748;
     background-color: gold;
+}
+
+.announcement{
+    height: 80px;
+    width: 100%;
+    background-color:#D4B996;
+    margin-top: 80px;
+    transform: scale(1);
+}
+.announcement h1{
+    text-align: center;
+    color:  #2D2B28;
+    padding-top: 5px;
+}
+.announcement marquee{
+    background-color:  #D4B996;
+    color:  #2D2B28;
+    font-size: 25px;
+    padding-bottom: 8px;
+}
+.announcement marquee a{
+    text-decoration: none;
+    color: black;
 }
 
 /* Main Content */
@@ -412,79 +437,39 @@ body {
 .footer .footer-links a:hover {
     color: gold;
 }
-
-
-@media screen and (max-width: 1392px) {
-    .key-features {
-        flex-wrap: wrap;
-        gap: 20px;
-        justify-content: center;
+@media screen and (max-width: 1100px) {
+    .header .quote {
+        height: auto;
+        padding: 15px;
     }
-    .key-features .key-containers {
-        margin-bottom: 20px;
+    .header .quote p {
+        margin: 10px 0 0 0;
     }
-    .our-aims {
-        flex-wrap: wrap;
-        gap: 20px;
-        justify-content: center;
-    }
-    .our-aims .aim-container {
-        margin-bottom: 20px;
-    }
-    .our-aims {
-        padding: 40px 20px;
-    }
-    .aim-gif,
-    .htw-button {
-        width: auto;
-    }
-}
-
-@media screen and (max-width: 900px) {
-    /* Header */
-    .header{
+    .header .container ul li {
+        display: block;
         width: 100%;
     }
-    .header .quote p{
-        display: none;
+    .header .container ul li a {
+        padding: 10px;
     }
-
-    /* Main */
     .main .main-container {
-        width: 95%;
-        margin: 20px auto;
+        width: 90%;
+        margin: 30px auto;
+        height: auto;
         padding: 20px;
     }
-    .main .main-container button {
-        font-size: 20px;
-        padding: 8px 16px;
-        margin-bottom: 10px;
-    }
-
-    /* How It Works */
-    .how-it-works #htw-button {
-        margin: 30px auto;
-        display: block;
-    }
-
-    /* Key Features */
     .key-features {
         flex-direction: column;
         align-items: center;
     }
     .key-features .key-containers {
-        width: 90%;
-        margin-bottom: 20px;
+        width: 70%;
+        margin-bottom: 30px;
+        height: auto;
     }
-
-    /* Our Vision */
-    .our-vision img {
-        margin: 20px auto;
-        display: block;
-    }
-    .our-vision h1 {
-        margin: 10px auto;
-        text-align: center;
+    .how-it-works #htw-button {
+        margin-top: 200px;
+        margin: 40px auto 0 auto;
     }
     .our-vision .our-aims {
         flex-direction: column;
@@ -492,113 +477,123 @@ body {
     }
     .our-vision .aims {
         width: 90%;
-        margin: 15px 0;
-    }
-
-    /* Service Provided */
-    .service-provided {
-        width: 50%;
         height: auto;
-        padding: 15px;
+    }
+    .service-provided {
+        height: auto;
+        padding: 20px 0;
     }
     .service-provided .service-list ul {
         flex-direction: column;
-        gap: 10px;
         align-items: center;
-        justify-content: center;
     }
-
-    /* Feedback */
-    .feedback-form h1 {
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis; /*Optional: adds "..." if text overflows*/
+    .service-provided .service-list ul li {
+        margin-bottom: 20px;
     }
-    
-    .feedback-form .chat {
-        display: flex;
-        flex-direction: column;
-        align-items: center; /* This centers everything inside horizontally */
-    }
-    .feedback-form .chat button {
-        width: auto; /* or any desired width */
-        margin-top: 10px;
-        border-radius: 35%;
-        align-self: center; /* ensures it doesn't override the flex alignment */
-    }
-     /* Footer */
-     .footer {
+    .footer {
         height: auto;
-        padding: 20px 10px;
-        text-align: center;
+        padding: 20px 0;
     }
-
-    .footer h2 {
-        font-size: 24px;
-        padding: 20px 0 10px 0;
-    }
-
-    .footer p {
-        font-size: 16px;
-        padding: 5px;
-    }
-
     .footer #own-saying {
         margin-left: 0;
         text-align: center;
-        font-size: 14px;
-        padding-bottom: 10px;
     }
-
     .footer .footer-links {
         float: none;
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 10px;
-        padding: 10px 0;
-        margin-top: 50px;
+        text-align: center;
     }
-
     .footer .footer-links a {
-        font-size: 16px;
-        padding: 5px 10px;
-        display: inline-block;
-    }  
-}
-
-@media screen and (max-width:730px) {
-    .main-container button{
-        margin-bottom: 15px;
+        position: static;
+        display: block;
+        padding: 10px;
     }
-    .main-container h1{
+}
+@media screen and (max-width: 400px) {
+    .header .quote h2 {
+        font-size: 1.2rem;
+    }
+    .header .quote p {
+        font-size: 0.9rem;
+    }
+    .announcement {
+        margin-top: 40px;
+        height: 60px;
+    }
+    .announcement h1 {
+        font-size: 1.2rem;
+    }
+    .announcement marquee {
+        font-size: 1rem;
+    }
+    .main .main-container h1 {
         display: none;
     }
-    .feedback-form input {
-        width: 100%;
-    }
-
-    .feedback-form .chat {
-        flex-direction: column;
-        align-items: stretch;
-    }
-
-    .feedback-form button {
-        width: 100%;
-    }
-}
-/* Extra Small Screens (max-width: 360px) */
-@media screen and (max-width: 360px) {
-    .main .main-container {
-        padding: 15px;
+    .main .main-container p {
+        font-size: 0.9rem;
     }
     .main .main-container button {
-        font-size: 16px;
+        font-size: 1.2rem;
     }
-    .key-features .key-containers,
-    .our-vision .aims, .service-provided {
-        height: auto;
-        width: 50%;
+    .htw-content {
+        width: 95%;
+    }
+    .htw-header h1 {
+        font-size: 1.3rem;
+    }
+    .htw-body li {
+        font-size: 0.9rem;
+    }
+    #kf {
+        font-size: 1.8rem;
+        margin: 50px 0 30px;
+    }
+    .key-containers h1 {
+        font-size: 2rem;
+    }
+    .key-containers h3 {
+        font-size: 1.2rem;
+    }
+    .key-containers p {
+        font-size: 0.9rem;
+    }
+    .our-vision img {
+        height: 150px;
+        width: 150px;
+    }
+    .our-vision h1 {
+        font-size: 1.8rem;
+    }
+    .aims h3 {
+        font-size: 1.1rem;
+    }
+    .aims p {
+        font-size: 0.9rem;
+    }
+    .feedback-form {
+        padding: 1rem;
+    }
+    .feedback-form input {
+        width: 90%;
+        margin-right: 0;
+    }
+    .feedback-form .chat {
+        flex-direction: column;
+    }
+    .feedback-form button {
+        width: 90%;
+        margin: 5px 0;
+    }
+    .footer h2 {
+        font-size: 1.1rem;
+        padding: 20px 10px 0 10px;
+    }
+    .footer p {
+        font-size: 0.8rem;
+    }
+    .footer #rights-reserved{
+        display: none;
+    }
+    .footer .footer-links a {
+        font-size: 0.9rem;
     }
 }
-
