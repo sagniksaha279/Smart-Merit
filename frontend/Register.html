@@ -24,7 +24,7 @@
                 <input type="text" name="studentName" placeholder="Enter Name" id="studentName" required>
                 <label for="studentPassword">Password : </label>
                 <input type="password" name="studentPassword" placeholder="Enter Password" id="studentPassword" required>
-                <label for="studentSchool">School Name</label>
+                <label for="studentSchool">School / Institution Name : </label>
                 <input type="text" name="studentSchool" placeholder="Enter School Name" id="studentSchool" required>
                 <label for="studentClass">Class : </label>
                 <input type="text" maxlength="2" id="studentClass" placeholder="12" required>
@@ -45,7 +45,7 @@
             <input type="text" id="teacherName" placeholder="Enter Name" name="teacherName" required>
             <label for="teacherPassword">Password : </label>
             <input type="password" id="teacherPassword" placeholder="Enter Password" name="teacherPassword" required>
-            <label for="teacherSchool">School Name : </label>
+            <label for="teacherSchool">School / Institution Name : </label>
             <input type="text" id="teacherSchool" placeholder="Enter School Name" name="teacherSchool" required>
             <label for="teacherSubject">Subject : </label>
             <input type="text" id="teacherSubject" placeholder="Subject Name" name="teacherSubject" required>
@@ -61,7 +61,7 @@
             <div class="reg">
                 <img src="school.gif" alt="school image">
                 <h4>School / Institution Portal</h4>
-                <label for="schoolName">School Name : </label>
+                <label for="schoolName">School / Institution Name : </label>
                 <input type="text" id="schoolName" placeholder="Enter School Name" name="schoolName" required>
                 <label for="schoolPassword">Password : </label>
                 <input type="password" id="schoolPassword" placeholder="Enter Password" name="schoolPassword" required>
@@ -73,7 +73,12 @@
         </form>
     </div>
     <script>
-        const API = "https://smart-merit.vercel.app";
+      alert(
+        "📢 Dear Students / Teachers ,\n" +
+        "                   If you got your ID & password from your Institution 🎓,\n" +
+        "please enter your institution's name in the School Name field 🏫"
+      );      
+      const API = "https://smart-merit.vercel.app";
         //const API = "http://localhost:3000"
     
         function loginStudent(e) {
