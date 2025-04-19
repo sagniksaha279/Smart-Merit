@@ -8,9 +8,18 @@ const OpenAI = require("openai");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(cors());
+app.use(cors({
+  origin: 'https://smartmerit.netlify.app'
+}));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
+app.use((req, res, next) => {
+  if (req.method === 'OPTIONS') {
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
+    return res.status(200).json({});
+  }
+  next();
+});
 
 // Database connection with pooling
 const pool = mysql.createPool({
