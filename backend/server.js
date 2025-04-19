@@ -1,37 +1,26 @@
 require("dotenv").config();
 const express = require("express");
-const mysql = require('mysql2/promise');
+const mysql = require('mysql2');
 const cors = require("cors");
 const bodyParser = require("body-parser");
-const path = require('path');
 const OpenAI = require("openai");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-
 app.get('/favicon.ico', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'favicon.ico'));
 });
-
-app.use(express.static('public'));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
-app.use(cors({
-  origin: 'https://smartmerit.netlify.app',
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
-app.options('*', (req, res) => res.sendStatus(200));
+app.use(cors());
 
-//db connection
-const pool = mysql.createPool({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
-  port: process.env.DB_PORT || 3306,
-  connectTimeout: 5000,
-  acquireTimeout: 5000 
+// DB Connection
+const pool = mysql.createPool({  
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME,
+    port: process.env.DB_PORT || 3306,
 });
 
 const openai = new OpenAI({
@@ -62,6 +51,7 @@ const query = (sql, values) => {
 };
 
 
+// Feedback API
 app.post("/submit-feedback", async (req, res) => {
   try {
     const { message } = req.body;
@@ -69,26 +59,13 @@ app.post("/submit-feedback", async (req, res) => {
       return res.status(400).json({ error: "Feedback cannot be empty" });
     }
 
-    // Add timeout to the query
-    const timeoutPromise = new Promise((_, reject) => 
-      setTimeout(() => reject(new Error("Database timeout")), 8000
-    ));
-
-    const queryPromise = query("INSERT INTO feedback (message) VALUES (?)", [message]);
-    
-    await Promise.race([queryPromise, timeoutPromise]);
-    
-    res.status(201).json({ message: "Thank you for your feedback!" });
-    
+    await query("INSERT INTO feedback (message) VALUES (?)", [message]);
+    res.status(201).json({ message: "Thank you for sending us feedback!" });
   } catch (err) {
-    console.error("Feedback error:", err);
-    res.status(500).json({ 
-      error: err.message.includes("timeout") 
-        ? "Operation took too long, please try again" 
-        : "Failed to submit feedback"
-    });
+    res.status(500).json({ error: "Database error", details: err.message });
   }
 });
+
 
 //-------STUDENT PORTAL------------
 app.get("/studentdetails", async (req, res) => {
