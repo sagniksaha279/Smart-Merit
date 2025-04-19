@@ -54,7 +54,8 @@
 </head>
 <body>
   <h1>🏫 School Dashboard</h1>
-
+  <h3 id="welcomeMessage"></h3>
+  
   <div class="section">
     <h2>➕ Add Teacher</h2>
     <form id="addTeacherForm">
@@ -155,7 +156,8 @@
       alert("🔐 Please log in as a school first.");
       window.location.href = "Register.html";
     }
-  
+    document.getElementById("welcomeMessage").innerText = `👋 Welcome, ${schoolName} - ADMIN 👨‍💼 `;
+
     function fetchTeachers() {
       fetch(`${API}/teachers?schoolName=${schoolName}`)
         .then(res => res.json())
