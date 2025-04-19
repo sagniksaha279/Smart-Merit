@@ -1,6 +1,4 @@
-# Smart-Merit
-#NOT-COMPLETED
-This repository is created for student and teacher management an one-time solution for physical harcopy and maintainables# 📚 Smart Merit – Web-based Meritorious Student Recognition System
+# 📚 Smart Merit – Web-based Meritorious Student Recognition System
 Smart Merit is a web platform designed to recognize and support meritorious students in primary education using data-driven insights and AI-powered feedback. It bridges students, teachers, schools, and parents to foster a culture of academic excellence and collaboration.
 
 ---
@@ -9,6 +7,7 @@ Smart Merit is a web platform designed to recognize and support meritorious stud
 
 🔗 [Smart Merit Platform](https://smartmerit.netlify.app)
 
+---
 ---
 
 ## 🛠 Features
@@ -21,6 +20,7 @@ Smart Merit is a web platform designed to recognize and support meritorious stud
 - 📥 **Multi-user Login** – Different portals for students, teachers, and school admins.
 - 🔒 **Secure Login** – Session-based authentication with school validation.
 
+---
 
 ## 💡 Technologies Used
 
