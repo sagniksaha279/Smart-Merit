@@ -463,78 +463,71 @@
       renderStudents(sorted);
     }
 
-    // Example for fetchSummary
     function fetchSummary() {
-    fetch(`${API}/students?schoolName=${schoolName}`)
-    .then(res => {
-      if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-      return res.json();
-    })
-    .then(data => {
-      if (!data.success) throw new Error(data.message || "Failed to load students");
-      
-      let studentData = data.students;
-      let summaryHTML = `<table><thead><tr><th>Name</th><th>Roll No</th></tr></thead><tbody>`;
-      studentData.forEach(s => {
-        summaryHTML += `<tr><td>${s.name}</td><td>${s.rollNumber}</td></tr>`;
-      });
-      summaryHTML += `</tbody></table>`;
-      document.getElementById("summaryContent").innerHTML = summaryHTML;
-    })
-    .catch(error => {
-      console.error("Error:", error);
-      document.getElementById("summaryContent").textContent = `Error: ${error.message}`;
-    });
+      fetch(`${API}/all-performance?schoolName=${schoolName}`)
+        .then(res => {
+          if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+          return res.json();
+        })
+        .then(perf => {
+          if (!perf.success) throw new Error(perf.message || "Failed to load performance data");
+    
+          // Destroy existing charts if they exist
+          const marksChart = Chart.getChart('avgMarksChart');
+          const attendanceChart = Chart.getChart('avgAttendanceChart');
+          if (marksChart) marksChart.destroy();
+          if (attendanceChart) attendanceChart.destroy();
+    
+          // Create new charts with correct data
+          new Chart(document.getElementById('avgMarksChart'), {
+            type: 'bar',
+            data: {
+              labels: perf.subjects,
+              datasets: [{
+                label: 'Average Marks',
+                data: perf.avgMarks,
+                backgroundColor: '#3498db'
+              }]
+            },
+            options: {
+              responsive: true,
+              scales: {
+                y: {
+                  beginAtZero: true
+                }
+              }
+            }
+          });
+    
+          new Chart(document.getElementById('avgAttendanceChart'), {
+            type: 'line',
+            data: {
+              labels: perf.subjects,
+              datasets: [{
+                label: 'Average Attendance %',
+                data: perf.avgAttendance,
+                borderColor: '#2ecc71',
+                fill: false
+              }]
+            },
+            options: {
+              responsive: true,
+              scales: {
+                y: {
+                  beginAtZero: true
+                }
+              }
+            }
+          });
+        })
+        .catch(error => {
+          console.error("Error:", error);
+          document.getElementById("summaryContent").textContent = `Error: ${error.message}`;
+        });
+    }
+    
 
-    fetch(`${API}/all-performance?schoolName=${schoolName}`)
-    .then(res => {
-      if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-      return res.json();
-    })
-    .then(perf => {
-      if (!perf.success) throw new Error(perf.message || "Failed to load performance data");
-
-      const labels = perf.subjects;
-      const avgMarks = perf.avgMarks;
-      const avgAttendance = perf.avgAttendance;
-
-      // Destroy existing charts if they exist
-      const marksChart = Chart.getChart('avgMarksChart');
-      const attendanceChart = Chart.getChart('avgAttendanceChart');
-      if (marksChart) marksChart.destroy();
-      if (attendanceChart) attendanceChart.destroy();
-
-      new Chart(document.getElementById('avgMarksChart'), {
-        type: 'bar',
-        data: {
-          labels: labels,
-          datasets: [{
-            label: 'Avg Marks',
-            data: avgMarks,
-            backgroundColor: '#3498db'
-          }]
-        }
-      });
-
-      new Chart(document.getElementById('avgAttendanceChart'), {
-        type: 'line',
-        data: {
-          labels: labels,
-          datasets: [{
-            label: 'Avg Attendance %',
-            data: avgAttendance,
-            borderColor: '#2ecc71',
-            fill: false
-          }]
-        }
-      });
-    })
-    .catch(error => {
-      console.error("Error:", error);
-    });
-}
-
-function fetchClassToppers() {
+  function fetchClassToppers() {
   const container = document.getElementById('toppersList');
   container.innerHTML = `<div class="loading">Loading toppers...</div>`;
   
