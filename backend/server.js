@@ -1,6 +1,6 @@
 require("dotenv").config();
 const express = require("express");
-const mysql = require("mysql2");
+const mysql = require('mysql2/promise');
 const cors = require("cors");
 const bodyParser = require("body-parser");
 const OpenAI = require("openai");
@@ -17,24 +17,22 @@ app.use(cors({
 }));
 app.options('*', (req, res) => res.sendStatus(200));
 
-// Database connection with pooling
 const pool = mysql.createPool({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
-  port: process.env.DB_PORT,
+  port: process.env.DB_PORT || 3306,
   waitForConnections: true,
   connectionLimit: 10,
-  queueLimit: 0
+  connectTimeout: 10000,
+  ssl: { rejectUnauthorized: false }, 
 });
 
-// Initialize OpenAI
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 });
 
-// Test DB Connection
 pool.getConnection((err, connection) => {
   if (err) {
     console.error("❌ DB connection failed:", err.message);
