@@ -156,16 +156,27 @@
   </div>
 
   <script>
+
+    const api = "https://smart-merit.vercel.app"; 
+    //const api = "http://localhost:3000"
     const roll = sessionStorage.getItem('studentRoll');
-    if (!roll) {
+    const school = sessionStorage.getItem('studentSchool')
+    if (!roll || !school) {
       alert("🔐 Please log in first.");
       window.location.href = "Register.html";
     }
 
-    fetch(`http://localhost:3000/student-details?roll=${roll}`)
-      .then(res => res.json())
-      .then(data => {
-        if (!data.success) throw new Error("Student not found");
+        fetch(`${api}/studentdetails?roll=${roll}&schoolName=${school}`)
+        .then(res => {
+          if (!res.ok) {
+            throw new Error("Failed to fetch student details");
+          }
+          return res.json();
+        })
+        .then(data => {
+        if (!data.success) {
+          throw new Error(data.message || "Student not found");
+        }
 
         const student = data.student;
         const performance = data.performance;
@@ -175,6 +186,7 @@
         document.getElementById('studentSection').textContent = student.section;
         document.getElementById('studentRoll').textContent = student.rollNumber;
         document.getElementById('studentSchool').textContent = student.schoolName;
+        
 
         const subjects = [], marks = [], attendance = [];
         const tbody = document.getElementById('performanceTable');
@@ -246,10 +258,15 @@
         });
 
         // Fetch AI Feedback (uses rollNumber now)
-        fetch("http://localhost:3000/ai-feedback", {
+        fetch(`${api}/ai-feedback`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name: student.name, rollNumber: student.rollNumber, performance })
+          body: JSON.stringify({ 
+            name: student.name, 
+            rollNumber: student.rollNumber, 
+            schoolName: student.schoolName, 
+            performance 
+          })
         })
         .then(res => res.json())
         .then(aiData => {
