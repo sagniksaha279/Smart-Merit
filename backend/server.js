@@ -8,6 +8,7 @@ const OpenAI = require("openai");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+//Middlewares
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(cors({
@@ -57,6 +58,22 @@ const query = (sql, values) => {
     });
   });
 };
+
+
+app.post("/submit-feedback", (req, res) => {
+  const { message } = req.body;
+  if (!message) {
+      return res.status(400).json({ error: "Feedback cannot be empty" });
+  }
+
+  db.query("INSERT INTO feedback (message) VALUES (?)", [message], (err, result) => {
+      if (err) {
+          return res.status(500).json({ error: "Database error", details: err });
+      }
+      res.status(201).json({ message: "Thank you for sending us feedback!" });
+  });
+});
+
 
 //-------STUDENT PORTAL------------
 app.get("/studentdetails", async (req, res) => {
