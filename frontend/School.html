@@ -40,6 +40,16 @@
       background-color: #2c3e50;
       color: white;
     }
+    @media (max-width: 768px) {
+      .section {
+        margin: 1rem 0;
+        padding: 0.5rem;
+      }
+      table {
+        font-size: 0.8rem;
+      }
+    }
+
   </style>
 </head>
 <body>
@@ -76,11 +86,13 @@
     <button onclick="fetchPerformance()">Load Performance</button>
     <div id="performanceOverview">Loading...</div>
   </div>
-
   <div class="section">
-    <h2>👥 Total Students</h2>
-    <button onclick="fetchStudentCount()">Get Student Count</button>
-    <p id="studentCount">Loading...</p>
+    <h2>👥 Student List</h2>
+    <button onclick="fetchStudentList()">Load Student List</button>
+    <div id="studentListContainer">
+      <p id="totalCount"></p>
+      <div id="studentTable"></div>
+    </div>
   </div>
 
   <div class="section">
@@ -100,6 +112,26 @@
   </div>
 
   <div class="section">
+    <h2>👨‍🏫 Assign Students to Teachers</h2>
+    <form id="assignStudentForm">
+      <input type="number" name="teacherId" placeholder="Teacher ID" required>
+      <input type="number" name="studentRoll" placeholder="Student Roll" required>
+      <input type="text" name="subject" placeholder="Subject" required>
+      <button type="submit">Assign Student</button>
+    </form>
+    <div id="assignMessage"></div>
+  </div>
+  
+  <div class="section">
+    <h2>👨‍🎓 Teacher's Students</h2>
+    <form id="teacherStudentsForm">
+      <input type="number" name="teacherId" placeholder="Teacher ID" required>
+      <button type="submit">Get Students</button>
+    </form>
+    <div id="teacherStudentsList"></div>
+  </div>
+
+  <div class="section">
     <h2>📅 Teacher Attendance Report</h2>
     <button onclick="fetchTeacherAttendance()">Load Report</button>
     <div id="teacherAttendanceReport">Loading...</div>
@@ -116,15 +148,16 @@
   </div>
 
   <script>
-    const API = "http://localhost:3000";
+    const API = "https://smart-merit.vercel.app";
+    //const API = "http://localhost:3000";
     const schoolName = sessionStorage.getItem("schoolName");
     if (!schoolName) {
       alert("🔐 Please log in as a school first.");
       window.location.href = "Register.html";
     }
-
+  
     function fetchTeachers() {
-      fetch(`${API}/teachers`)
+      fetch(`${API}/teachers?schoolName=${schoolName}`)
         .then(res => res.json())
         .then(data => {
           const list = document.getElementById("teacherList");
@@ -141,64 +174,159 @@
         });
     }
 
+
     function fetchPerformance() {
-      fetch(`${API}/all-performance`)
+      const overviewDiv = document.getElementById("performanceOverview");
+      overviewDiv.innerHTML = 'Loading...';
+    
+      fetch(`${API}/all-performance?schoolName=${schoolName}`)
         .then(res => res.json())
         .then(data => {
-          const div = document.getElementById("performanceOverview");
-          if (!data.success) return div.innerHTML = "Failed to load performance.";
-
-          let html = `<table><thead><tr><th>Subject</th><th>Avg Marks</th><th>Avg Attendance (%)</th></tr></thead><tbody>`;
-          data.subjects.forEach((subject, i) => {
-            html += `<tr><td>${subject}</td><td>${data.avgMarks[i]}</td><td>${data.avgAttendance[i]}</td></tr>`;
-          });
-          html += `</tbody></table>`;
-          div.innerHTML = html;
-        });
-    }
-
-    function fetchStudentCount() {
-      fetch(`${API}/student-count`)
-        .then(res => res.json())
-        .then(data => {
-          document.getElementById("studentCount").textContent = `Total Students: ${data.count}`;
-        });
-    }
-
-    function fetchTeacherAttendance() {
-      fetch(`${API}/teacher-attendance-report`)
-        .then(res => res.json())
-        .then(data => {
-          const div = document.getElementById("teacherAttendanceReport");
-          if (!data.success || !data.attendance.length) {
-            div.innerHTML = "No attendance records found.";
+          if (!data.success || !data.data || data.data.length === 0) {
+            overviewDiv.innerHTML = "No performance data available";
             return;
           }
     
-          let html = `<table><thead><tr><th>Teacher Name</th><th>Date</th></tr></thead><tbody>`;
-          data.attendance.forEach(row => {
-            html += `<tr><td>${row.name}</td><td>${row.date}</td></tr>`;
+          let html = `
+            <table border="1" cellpadding="5">
+              <thead>
+                <tr>
+                  <th>Class</th>
+                  <th>Subject</th>
+                  <th>Avg Marks</th>
+                  <th>Avg Attendance</th>
+                  <th>Student Count</th>
+                </tr>
+              </thead>
+              <tbody>
+          `;
+    
+          data.data.forEach(row => {
+            html += `
+              <tr>
+                <td>${row.class}</td>
+                <td>${row.subject}</td>
+                <td>${row.averageMarks}</td>
+                <td>${row.averageAttendance}%</td>
+                <td>${row.studentCount}</td>
+              </tr>
+            `;
           });
+    
           html += `</tbody></table>`;
-          div.innerHTML = html;
+          overviewDiv.innerHTML = html;
+        })
+        .catch(error => {
+          overviewDiv.innerHTML = "Failed to load performance";
+          console.error(error);
         });
     }
     
+       
+    function fetchTeacherAttendance() {
+      const reportDiv = document.getElementById("teacherAttendanceReport");
+      reportDiv.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
+      
+      fetch(`${API}/teacher-attendance-report?schoolName=${schoolName}&cacheBuster=${Date.now()}`)
+        .then(res => res.json())
+        .then(data => {
+          if (!data.success || !data.attendance.length) {
+            reportDiv.innerHTML = "No attendance records found.";
+            return;
+          }
+    
+          let html = `<table><thead><tr><th>Teacher</th><th>Present Days</th><th>Last Update</th></tr></thead><tbody>`;
+          data.attendance.forEach(row => {
+            html += `<tr>
+              <td>${row.name}</td>
+              <td>${row.presentCount}</td>
+              <td>${new Date().toLocaleTimeString()}</td>
+            </tr>`;
+          });
+          html += `</tbody></table>`;
+          reportDiv.innerHTML = html;
+        })
+        .catch(error => {
+          reportDiv.innerHTML = `Error: ${error.message}`;
+        });
+    }
+  
     function fetchTeacherPerformance() {
-      fetch(`${API}/teacher-performance`)
+      fetch(`${API}/teacher-performance?schoolName=${schoolName}`)
         .then(res => res.json())
         .then(data => {
           const div = document.getElementById("teacherPerformance");
           if (!data.success) return div.innerHTML = "Failed to load.";
-          let html = `<table><thead><tr><th>Teacher</th><th>Subject</th><th>Batch</th><th>Students</th></tr></thead><tbody>`;
+          
+          let html = `
+            <table>
+              <thead>
+                <tr>
+                  <th>Teacher</th>
+                  <th>Subject</th>
+                  <th>Students</th>
+                  <th>Avg Marks</th>
+                  <th>Avg Attendance</th>
+                </tr>
+              </thead>
+              <tbody>`;
+          
           data.teachers.forEach(t => {
-            html += `<tr><td>${t.name}</td><td>${t.subject}</td><td>${t.batchId}</td><td>${t.studentCount}</td></tr>`;
+            html += `
+              <tr>
+                <td>${t.name}</td>
+                <td>${t.subject}</td>
+                <td>${t.studentCount}</td>
+                <td>${t.avg_marks.toFixed(2)}</td>
+                <td>${t.avg_attendance.toFixed(2)}%</td>
+              </tr>`;
           });
+          
           html += `</tbody></table>`;
           div.innerHTML = html;
         });
     }
+    document.getElementById("assignStudentForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+      const payload = Object.fromEntries(new FormData(this));
+      fetch(`${API}/assign-student`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...payload, schoolName })
+      })
+      .then(res => res.json())
+      .then(data => {
+        document.getElementById("assignMessage").textContent = data.message;
+        this.reset();
+      });
+    });
     
+    document.getElementById("teacherStudentsForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+      const teacherId = document.querySelector("#teacherStudentsForm [name=teacherId]").value;
+      fetch(`${API}/teacher-students?teacherId=${teacherId}&schoolName=${schoolName}`)
+        .then(res => res.json())
+        .then(data => {
+          const div = document.getElementById("teacherStudentsList");
+          if (!data.success || !data.students.length) {
+            div.innerHTML = "No students found for this teacher.";
+            return;
+          }
+          
+          let html = `<table><thead><tr><th>Roll No</th><th>Name</th><th>Class</th><th>Section</th><th>Subject</th></tr></thead><tbody>`;
+          data.students.forEach(s => {
+            html += `<tr>
+              <td>${s.rollNumber}</td>
+              <td>${s.name}</td>
+              <td>${s.class}</td>
+              <td>${s.section}</td>
+              <td>${s.subject}</td>
+            </tr>`;
+          });
+          html += `</tbody></table>`;
+          div.innerHTML = html;
+        });
+    });
 
     document.getElementById("addTeacherForm").addEventListener("submit", function(e) {
       e.preventDefault();
@@ -206,7 +334,7 @@
       fetch(`${API}/add-teacher`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
+        body: JSON.stringify({ ...payload, schoolName })
       })
       .then(res => res.json())
       .then(data => {
@@ -215,14 +343,14 @@
         fetchTeachers();
       });
     });
-
+  
     document.getElementById("deleteTeacherForm").addEventListener("submit", function(e) {
       e.preventDefault();
       const payload = Object.fromEntries(new FormData(this));
       fetch(`${API}/delete-teacher`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
+        body: JSON.stringify({ ...payload, schoolName })
       })
       .then(res => res.json())
       .then(data => {
@@ -231,14 +359,14 @@
         fetchTeachers();
       });
     });
-
+  
     document.getElementById("teacherAttendanceForm").addEventListener("submit", function(e) {
       e.preventDefault();
       const payload = Object.fromEntries(new FormData(this));
       fetch(`${API}/mark-teacher-attendance`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
+        body: JSON.stringify({ ...payload, schoolName })
       })
       .then(res => res.json())
       .then(data => {
@@ -246,31 +374,91 @@
         this.reset();
       });
     });
-
+  
     document.getElementById("classPerformanceForm").addEventListener("submit", function(e) {
       e.preventDefault();
       const payload = Object.fromEntries(new FormData(this));
-      const query = `?className=${payload.className}&section=${payload.section}`;
-    
+      const query = `?className=${payload.className}&section=${payload.section}&schoolName=${schoolName}`;
       fetch(`${API}/performance-by-class${query}`)
         .then(res => res.json())
         .then(data => {
           const div = document.getElementById("classPerformanceResult");
-          if (!data.success || !data.subjects.length) {
+          if (!data.success || !data.performance || !data.performance.length) {
             div.innerHTML = "No performance data found.";
             return;
           }
     
-          let html = `<table><thead><tr><th>Subject</th><th>Avg Marks</th><th>Avg Attendance</th></tr></thead><tbody>`;
-          data.subjects.forEach((subject, i) => {
-            html += `<tr><td>${subject}</td><td>${data.avgMarks[i]}</td><td>${data.avgAttendance[i]}</td></tr>`;
+          let html = `<table><thead><tr><th>Class</th><th>Subject</th><th>Teacher</th><th>Student Count</th></tr></thead><tbody>`;
+          
+          data.performance.forEach(row => {
+            html += `<tr>
+              <td>${row.className || 'N/A'}</td>
+              <td>${row.subject || 'Not assigned'}</td>
+              <td>${row.teacherName || 'Not assigned'}</td>
+              <td>${row.studentCount}</td>
+            </tr>`;
           });
+          
           html += `</tbody></table>`;
           div.innerHTML = html;
         });
     });
     
 
+
+    function fetchStudentList() {
+      fetch(`${API}/student-count?schoolName=${schoolName}`)
+        .then(res => res.json())
+        .then(data => {
+          const countElement = document.getElementById("totalCount");
+          const tableElement = document.getElementById("studentTable");
+          
+          if (!data.success || !data.students) {
+            countElement.textContent = "Failed to load student list.";
+            return;
+          }
+    
+          // Display total count
+          countElement.textContent = `Total Students: ${data.totalCount}`;
+          
+          // Create table
+          if (data.students.length > 0) {
+            let html = `
+              <table>
+                <thead>
+                  <tr>
+                    <th>Class</th>
+                    <th>Roll No</th>
+                    <th>Name</th>
+                  </tr>
+                </thead>
+                <tbody>
+            `;
+            
+            data.students.forEach(student => {
+              html += `
+                <tr>
+                  <td>${student.class}</td>
+                  <td>${student.rollNumber}</td>
+                  <td>${student.name}</td>
+                </tr>
+              `;
+            });
+            
+            html += `
+                </tbody>
+              </table>
+            `;
+            tableElement.innerHTML = html;
+          } else {
+            tableElement.innerHTML = "<p>No students found.</p>";
+          }
+        })
+        .catch(error => {
+          document.getElementById("studentListContainer").innerHTML = `<p>Error: ${error.message}</p>`;
+        });
+    }
+  
     // Initial load
     fetchTeachers();
   </script>
