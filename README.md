@@ -48,4 +48,6 @@ Contributions are welcome! Fork the repo, make changes, and submit a PR.
 ---
 
 
-### ⚠️🚧 Heads up! This project’s still cooking 🍳 — cool stuff(updates) coming soon! 🚀✨
+> ⚠️🚧 Heads up! This project’s still cooking 🍳 — cool stuff (updates) coming soon! 🚀✨
+> 🚀 *Innovating Today for a Smarter Tomorrow*  
+> 💻 Built with ❤️ & Code by **Sagnik Saha**
