@@ -8,7 +8,7 @@ Smart Merit is a web platform designed to recognize and support meritorious stud
 🔗 [Smart Merit Platform](https://smartmerit.netlify.app)
 
 ---
----
+
 
 ## 🛠 Features
 
@@ -21,6 +21,7 @@ Smart Merit is a web platform designed to recognize and support meritorious stud
 - 🔒 **Secure Login** – Session-based authentication with school validation.
 
 ---
+
 
 ## 💡 Technologies Used
 
@@ -43,4 +44,4 @@ Contributions are welcome! Fork the repo, make changes, and submit a PR.
 - 🔹 Developer: [Sagnik Saha](mailto:sahasagnik279@gmail.com)
 - 🔹 Organization: Tech Tots
 - 🔹 Year: 2025 Research Poster Project
-# ⚠️ Note: This project is a work in progress and still under active development. More features and improvements coming soon! 🚧✨
+# ⚠️ 🚧 Heads up! This project isn’t fully cooked yet 🍳 — still in the oven and getting better every day. Stick around for more awesome updates! 🚀😄. More features and improvements coming soon! 🚧✨
