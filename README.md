@@ -5,7 +5,7 @@ Smart Merit is a web platform designed to recognize and support meritorious stud
 
 ## 🌐 Live Demo
 
-🔗 [Smart Merit Platform](https://smartmerit.netlify.app)
+🔗 [Smart Merit](https://smartmerit.netlify.app)
 
 ---
 
