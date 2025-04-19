@@ -15,9 +15,8 @@ app.use(cors({
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
-app.options('*', (req, res) => {
-  res.sendStatus(200);
-});
+app.options('*', (req, res) => res.sendStatus(200));
+
 // Database connection with pooling
 const pool = mysql.createPool({
   host: process.env.DB_HOST,
