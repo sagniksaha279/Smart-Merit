@@ -6,12 +6,13 @@
       "use": "@vercel/node"
     }
   ],
-  "rewrites": [
-  {
-    "source": "/",
-    "destination": "/server.js"
-  }
-],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/server.js",
+      "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+    }
+  ],
   "headers": [
     {
       "source": "/(.*)",
