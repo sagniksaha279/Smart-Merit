@@ -28,6 +28,9 @@ const pool = mysql.createPool({
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME,
     port: process.env.DB_PORT || 3306,
+    connectTimeout: 10000,    
+    acquireTimeout: 10000,        
+    waitForConnections: true
 });
 
 const openai = new OpenAI({
