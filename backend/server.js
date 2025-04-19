@@ -3,11 +3,17 @@ const express = require("express");
 const mysql = require('mysql2/promise');
 const cors = require("cors");
 const bodyParser = require("body-parser");
+const path = require('path');
 const OpenAI = require("openai");
-
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+
+app.get('/favicon.ico', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'favicon.ico'));
+});
+
+app.use(express.static('public'));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(cors({
@@ -17,6 +23,7 @@ app.use(cors({
 }));
 app.options('*', (req, res) => res.sendStatus(200));
 
+//db connection
 const pool = mysql.createPool({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
