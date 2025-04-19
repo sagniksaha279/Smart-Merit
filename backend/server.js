@@ -8,12 +8,18 @@ const path = require("path");  // Add this line
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.get('/favicon.ico', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'favicon.ico'));
+const corsOptions = {
+  origin: "https://smartmerit.netlify.app",
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  credentials: true,
+};
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions)); 
+app.get("/favicon.ico", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "favicon.ico"));
 });
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
-app.use(cors());
 
 // DB Connection
 const pool = mysql.createPool({  
