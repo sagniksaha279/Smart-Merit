@@ -1,3 +1,28 @@
+function sendEmailAndRedirect(){
+    const subject = encodeURIComponent("Request for SmartMerit Free Trial Access");
+    const body = encodeURIComponent(`Dear SmartMerit Team,
+
+                I would like to request access to the free trial version of SmartMerit. Please find my details below:
+
+                Name: [Your Full Name]  
+                Email: [Your Email]  
+                Phone: [Your Phone Number]  
+                Organization/School: [Your Institution Name]  
+                Designation: [Your Role, e.g., Teacher, Principal, Admin]  
+                Purpose of Use: [Brief explanation, e.g., Track student performance, test features]  
+                Expected Number of Students: [Less Than 50 students]  
+                Preferred Trial Start Date: [DD-MM-YYYY]
+
+                Looking forward to your confirmation.
+
+                Best regards,  
+                [Your Name]`
+);
+
+    const mailtoLink = `mailto:mesagnik279@gmail.com?subject=${subject}&body=${body}`;
+    window.location.href = mailtoLink;
+}
+
 //how it works portion
 const openButton = document.querySelectorAll('[data-htw-target]')
 const closeButton = document.querySelectorAll('[data-htw-close]')
@@ -43,8 +68,8 @@ function closeContent(content){
 document.getElementById("feedbackForm").addEventListener("submit", function(e) {
     e.preventDefault();
     const feedback = document.getElementById("feedback").value;
-
-    fetch("http://localhost:3000/submit-feedback", {
+    const api = "https://smart-merit.vercel.app";
+    fetch(`${api}/submit-feedback`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ feedback })
