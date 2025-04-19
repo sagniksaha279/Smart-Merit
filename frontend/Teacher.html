@@ -59,10 +59,184 @@
       border-left: 4px solid #3498db;
       box-shadow: 0 1px 4px rgba(0,0,0,0.1);
     }
+    #toppersList table {
+      width: 100%;
+      margin-top: 1rem;
+      border-collapse: collapse;
+    }
+    
+    #toppersList th, #toppersList td {
+      padding: 0.75rem;
+      text-align: left;
+      border-bottom: 1px solid #ddd;
+    }
+    
+    #toppersList th {
+      background-color: #2c3e50;
+      color: white;
+    }
+    
+    #toppersList tr:nth-child(even) {
+      background-color: #f2f2f2;
+    }
+    
+    #toppersList tr:hover {
+      background-color: #e6f7ff;
+    }
+    .loading {
+      color: #7f8c8d;
+      font-style: italic;
+    }
+    .error {
+      color: #e74c3c;
+      padding: 0.5rem;
+      background: #fde8e8;
+      border-left: 4px solid #e74c3c;
+    }
+    .student-controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+  
+    .search-box {
+      position: relative;
+      flex-grow: 1;
+      max-width: 300px;
+    }
+  
+    .search-box input {
+      width: 100%;
+      padding: 0.5rem 2rem 0.5rem 1rem;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+  
+    .search-box .fa-search {
+      position: absolute;
+      right: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #7f8c8d;
+    }
+  
+    .sort-options {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+  
+    .sort-options select {
+      padding: 0.5rem;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      background: white;
+    }
+  
+    .student-stats {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+      font-size: 0.9rem;
+      color: #7f8c8d;
+    }
+  
+    .refresh-btn {
+      background: #3498db;
+      color: white;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.9rem;
+    }
+  
+    .refresh-btn:hover {
+      background: #2980b9;
+    }
+  
+    #studentListContainer {
+      border: 1px solid #eee;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+  
+    .student-list-header {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      background: #2c3e50;
+      color: white;
+      padding: 0.75rem 1rem;
+      font-weight: bold;
+    }
+  
+    .student-list {
+      max-height: 400px;
+      overflow-y: auto;
+    }
+  
+    .student-item {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid #eee;
+      align-items: center;
+    }
+  
+    .student-item:nth-child(even) {
+      background-color: #f9f9f9;
+    }
+  
+    .student-item:hover {
+      background-color: #f0f7ff;
+    }
+  
+    .no-students {
+      padding: 1rem;
+      text-align: center;
+      color: #7f8c8d;
+      font-style: italic;
+    }
+  
+    .loading-students {
+      padding: 1rem;
+      text-align: center;
+      color: #7f8c8d;
+    }
+  
+    .error-message {
+      padding: 1rem;
+      text-align: center;
+      color: #e74c3c;
+      background: #fde8e8;
+    }
+  
+    @media (max-width: 768px) {
+      .student-list-header,
+      .student-item {
+        grid-template-columns: 2fr 1fr;
+      }
+      
+      .student-list-header div:nth-child(3),
+      .student-list-header div:nth-child(4),
+      .student-item div:nth-child(3),
+      .student-item div:nth-child(4) {
+        display: none;
+      }
+    }
   </style>
 </head>
 <body>
   <h1>📚 Teacher Dashboard</h1>
+  <h3 id="welcomeMessage"></h3>
+  
 
   <div class="section">
     <h2>📌 Upload Marks</h2>
@@ -102,7 +276,8 @@
       <input type="text" name="name" placeholder="Student Name" required>
       <input type="text" name="rollNumber" placeholder="Roll Number" required>
       <input type="password" name="password" placeholder="Password" required>
-      <input type="text" name="section" placeholder="section" maxlength="1" required>
+      <input type="text" name="section" placeholder="Section" maxlength="1" required>
+      <input type="text" name="class" placeholder="Class" required>
       <button type="submit">Add Student</button>
     </form>
   </div>
@@ -124,7 +299,52 @@
   
   <div class="section">
     <h2>📋 Registered Students</h2>
-    <ul id="studentList">Loading...</ul>
+    
+    <div class="student-controls">
+      <div class="search-box">
+        <input type="text" id="studentSearch" placeholder="Search students..." oninput="filterStudents()">
+        <i class="fas fa-search"></i>
+      </div>
+      
+      <div class="sort-options">
+        <label>Sort by:</label>
+        <select id="sortStudents" onchange="sortStudents()">
+          <option value="name-asc">Name (A-Z)</option>
+          <option value="name-desc">Name (Z-A)</option>
+          <option value="roll-asc">Roll No (Low-High)</option>
+          <option value="roll-desc">Roll No (High-Low)</option>
+          <option value="class-asc">Class (Low-High)</option>
+          <option value="class-desc">Class (High-Low)</option>
+        </select>
+      </div>
+    </div>
+  
+    <div class="student-stats">
+      <span id="studentCount">Loading...</span>
+      <button onclick="loadStudents()" class="refresh-btn">
+        <i class="fas fa-sync-alt"></i> Refresh
+      </button>
+    </div>
+  
+    <div id="studentListContainer">
+      <div class="student-list-header">
+        <div>Name</div>
+        <div>Roll No</div>
+        <div>Class</div>
+        <div>Section</div>
+      </div>
+      <div id="studentList" class="student-list">Loading students...</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>🏆 Class Toppers</h2>
+    <div>
+      <label for="classFilter">Filter by Class:</label>
+      <input type="text" id="classFilter" placeholder="Enter class (optional)">
+      <button onclick="fetchClassToppers()">Get Toppers</button>
+    </div>
+    <div id="toppersList">Loading...</div>
   </div>
 
   <div class="section">
@@ -140,92 +360,246 @@
   </div>
 
   <script>
-    const API = "http://localhost:3000";
-
+    const API = "https://smart-merit.vercel.app";
+    //const API = "http://localhost:3000" 
     const teacherName = sessionStorage.getItem('teacherName');
-    if (!teacherName) {
-      alert("🔐 Please log in as a teacher first.");
+    const schoolName = sessionStorage.getItem('teacherSchool');
+    if (!schoolName || !teacherName) {
+      alert("🔐 Missing school/teacher name in session.");
       window.location.href = "Register.html";
     }
+    document.getElementById("welcomeMessage").innerText = `👋 Welcome, ${teacherName} from 🏫 ${schoolName} `;
 
+    let allStudents = [];
+
+    // Updated loadStudents function
     function loadStudents() {
-      fetch(`${API}/students`)
-        .then(res => res.json())
+      const container = document.getElementById("studentList");
+      container.innerHTML = '<div class="loading-students">Loading students...</div>';
+      
+      fetch(`${API}/students?schoolName=${encodeURIComponent(schoolName)}`)
+        .then(res => {
+          if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+          return res.json();
+        })
         .then(data => {
-          const list = document.getElementById("studentList");
-          if (data.success) {
-            list.innerHTML = "";
-            data.students.forEach(s => {
-              const li = document.createElement("li");
-              li.textContent = `${s.name} (Roll: ${s.rollNumber})`;
-              list.appendChild(li);
-            });
-          } else {
-            list.innerHTML = "<li>Failed to load students.</li>";
+          if (!data.success || !data.students) {
+            throw new Error(data.message || "No students found");
           }
+          
+          allStudents = data.students;
+          document.getElementById("studentCount").textContent = `${data.count} students found`;
+          
+          if (allStudents.length === 0) {
+            container.innerHTML = '<div class="no-students">No students registered yet</div>';
+            return;
+          }
+          
+          renderStudents(allStudents);
+        })
+        .catch(error => {
+          console.error("Error loading students:", error);
+          container.innerHTML = `<div class="error-message">Error: ${error.message || "Failed to load students"}</div>`;
         });
     }
+    
+    // Render students list
+    function renderStudents(students) {
+      const container = document.getElementById("studentList");
+      container.innerHTML = '';
+      
+      if (students.length === 0) {
+        container.innerHTML = '<div class="no-students">No matching students found</div>';
+        return;
+      }
+      
+      students.forEach(student => {
+        const studentDiv = document.createElement("div");
+        studentDiv.className = "student-item";
+        studentDiv.innerHTML = `
+          <div>${student.name || 'N/A'}</div>
+          <div>${student.rollNumber || 'N/A'}</div>
+          <div>${student.class || 'N/A'}</div>
+          <div>${student.section || 'N/A'}</div>
+        `;
+        container.appendChild(studentDiv);
+      });
+    }
+    
+    // Filter students based on search input
+    function filterStudents() {
+      const searchTerm = document.getElementById("studentSearch").value.toLowerCase();
+      const filtered = allStudents.filter(student => 
+        (student.name && student.name.toLowerCase().includes(searchTerm)) ||
+        (student.rollNumber && student.rollNumber.toString().includes(searchTerm)) ||
+        (student.class && student.class.toString().includes(searchTerm)) ||
+        (student.section && student.section.toLowerCase().includes(searchTerm))
+      );
+      renderStudents(filtered);
+      document.getElementById("studentCount").textContent = `${filtered.length} students found`;
+    }
+    
+    // Sort students
+    function sortStudents() {
+      const sortValue = document.getElementById("sortStudents").value;
+      const [field, direction] = sortValue.split('-');
+      
+      const sorted = [...allStudents].sort((a, b) => {
+        // Handle numeric fields differently
+        if (field === 'roll' || field === 'class') {
+          const valA = parseInt(a[field === 'roll' ? 'rollNumber' : 'class']) || 0;
+          const valB = parseInt(b[field === 'roll' ? 'rollNumber' : 'class']) || 0;
+          return direction === 'asc' ? valA - valB : valB - valA;
+        } else {
+          // Handle text fields
+          const valA = (a[field] || '').toString().toLowerCase();
+          const valB = (b[field] || '').toString().toLowerCase();
+          return direction === 'asc' 
+            ? valA.localeCompare(valB) 
+            : valB.localeCompare(valA);
+        }
+      });
+      
+      renderStudents(sorted);
+    }
 
+    // Example for fetchSummary
     function fetchSummary() {
-      fetch(`${API}/students`)
-        .then(res => res.json())
-        .then(data => {
-          if (!data.success) return document.getElementById("summaryContent").textContent = "Failed to load.";
+    fetch(`${API}/students?schoolName=${schoolName}`)
+    .then(res => {
+      if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+      return res.json();
+    })
+    .then(data => {
+      if (!data.success) throw new Error(data.message || "Failed to load students");
+      
+      let studentData = data.students;
+      let summaryHTML = `<table><thead><tr><th>Name</th><th>Roll No</th></tr></thead><tbody>`;
+      studentData.forEach(s => {
+        summaryHTML += `<tr><td>${s.name}</td><td>${s.rollNumber}</td></tr>`;
+      });
+      summaryHTML += `</tbody></table>`;
+      document.getElementById("summaryContent").innerHTML = summaryHTML;
+    })
+    .catch(error => {
+      console.error("Error:", error);
+      document.getElementById("summaryContent").textContent = `Error: ${error.message}`;
+    });
 
-          let studentData = data.students;
-          let summaryHTML = `<table><thead><tr><th>Name</th><th>Roll No</th></tr></thead><tbody>`;
-          studentData.forEach(s => {
-            summaryHTML += `<tr><td>${s.name}</td><td>${s.rollNumber}</td></tr>`;
-          });
-          summaryHTML += `</tbody></table>`;
-          document.getElementById("summaryContent").innerHTML = summaryHTML;
-        });
+    fetch(`${API}/all-performance?schoolName=${schoolName}`)
+    .then(res => {
+      if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+      return res.json();
+    })
+    .then(perf => {
+      if (!perf.success) throw new Error(perf.message || "Failed to load performance data");
 
-      fetch(`${API}/all-performance`)
-        .then(res => res.json())
-        .then(perf => {
-          if (!perf.success) return;
+      const labels = perf.subjects;
+      const avgMarks = perf.avgMarks;
+      const avgAttendance = perf.avgAttendance;
 
-          const labels = perf.subjects;
-          const avgMarks = perf.avgMarks;
-          const avgAttendance = perf.avgAttendance;
+      // Destroy existing charts if they exist
+      const marksChart = Chart.getChart('avgMarksChart');
+      const attendanceChart = Chart.getChart('avgAttendanceChart');
+      if (marksChart) marksChart.destroy();
+      if (attendanceChart) attendanceChart.destroy();
 
-          new Chart(document.getElementById('avgMarksChart'), {
-            type: 'bar',
-            data: {
-              labels: labels,
-              datasets: [{
-                label: 'Avg Marks',
-                data: avgMarks,
-                backgroundColor: '#3498db'
-              }]
-            }
-          });
+      new Chart(document.getElementById('avgMarksChart'), {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Avg Marks',
+            data: avgMarks,
+            backgroundColor: '#3498db'
+          }]
+        }
+      });
 
-          new Chart(document.getElementById('avgAttendanceChart'), {
-            type: 'line',
-            data: {
-              labels: labels,
-              datasets: [{
-                label: 'Avg Attendance %',
-                data: avgAttendance,
-                borderColor: '#2ecc71',
-                fill: false
-              }]
-            }
-          });
-        });
-    }
+      new Chart(document.getElementById('avgAttendanceChart'), {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Avg Attendance %',
+            data: avgAttendance,
+            borderColor: '#2ecc71',
+            fill: false
+          }]
+        }
+      });
+    })
+    .catch(error => {
+      console.error("Error:", error);
+    });
+}
+
+function fetchClassToppers() {
+  const container = document.getElementById('toppersList');
+  container.innerHTML = `<div class="loading">Loading toppers...</div>`;
+  
+  const classFilter = document.getElementById('classFilter').value;
+  let url = `${API}/class-toppers?schoolName=${encodeURIComponent(schoolName)}`;
+  
+  if (classFilter) {
+    url += `&className=${encodeURIComponent(classFilter)}`;
+  }
+
+  fetch(url)
+    .then(res => {
+      if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+      return res.json();
+    })
+    .then(data => {
+      if (!data.success || !data.toppers || data.toppers.length === 0) {
+        container.innerHTML = "<div>No toppers found for this class</div>";
+        return;
+      }
+      
+      let html = `
+        <table>
+          <thead>
+            <tr>
+              <th>Rank</th>
+              <th>Name</th>
+              <th>Roll No</th>
+              <th>Class</th>
+              <th>Section</th>
+              <th>Avg Marks</th>
+            </tr>
+          </thead>
+          <tbody>`;
+      
+      data.toppers.forEach((topper, index) => {
+        html += `
+          <tr>
+            <td>${index + 1}</td>
+            <td>${topper.name || 'N/A'}</td>
+            <td>${topper.rollNumber || 'N/A'}</td>
+            <td>${topper.class || 'N/A'}</td>
+            <td>${topper.section || 'N/A'}</td>
+            <td>${topper.avg_marks?.toFixed(2) || 'N/A'}</td>
+          </tr>`;
+      });
+      
+      html += `</tbody></table>`;
+      container.innerHTML = html;
+    })
+    .catch(error => {
+      container.innerHTML = `<div class="error">Error: ${error.message || "Failed to load toppers"}</div>`;
+      console.error("Error loading toppers:", error);
+    });
+}
 
     document.getElementById("addStudentForm").addEventListener("submit", function(e) {
       e.preventDefault();
       const formData = new FormData(this);
       const payload = Object.fromEntries(formData);
 
-      fetch(`${API}/add-student`, {
+      fetch(`${API}/add-student?schoolName=${schoolName}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
+        body: JSON.stringify({ ...payload, schoolName })
       })
       .then(res => res.json())
       .then(data => {
@@ -240,10 +614,10 @@
       const formData = new FormData(this);
       const payload = Object.fromEntries(formData);
 
-      fetch(`${API}/delete-student`, {
+      fetch(`${API}/delete-student?schoolName=${schoolName}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
+        body: JSON.stringify({ ...payload, schoolName })
       })
       .then(res => res.json())
       .then(data => {
@@ -258,10 +632,10 @@
       const formData = new FormData(this);
       const payload = Object.fromEntries(formData);
 
-      fetch(`${API}/upload-marks`, {
+      fetch(`${API}/upload-marks?schoolName=${schoolName}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
+        body: JSON.stringify({ ...payload, schoolName })
       })
       .then(res => res.json())
       .then(data => {
@@ -269,21 +643,43 @@
         this.reset();
       });
     });
-
     document.getElementById("dailyattendance").addEventListener("submit", function(e) {
       e.preventDefault();
       const formData = new FormData(this);
       const payload = Object.fromEntries(formData);
-
-      fetch(`${API}/daily-attendance`, {
+      
+      // Show loading state
+      const submitBtn = this.querySelector('button[type="submit"]');
+      const originalText = submitBtn.textContent;
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Processing...";
+    
+      fetch(`${API}/daily-attendance?schoolName=${schoolName}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
+        body: JSON.stringify({ ...payload, schoolName })
       })
-      .then(res => res.json())
+      .then(response => {
+        if (!response.ok) {
+          return response.json().then(err => { throw new Error(err.message || "Request failed"); });
+        }
+        return response.json();
+      })
       .then(data => {
-        alert(data.message);
-        this.reset();
+        if (data.success) {
+          alert(`✅ ${data.message}`);
+          this.reset();
+        } else {
+          throw new Error(data.message || "Failed to record attendance");
+        }
+      })
+      .catch(error => {
+        console.error("Attendance Error:", error);
+        alert(`❌ Error: ${error.message}`);
+      })
+      .finally(() => {
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
       });
     });
 
@@ -293,10 +689,10 @@
       const formData = new FormData(this);
       const payload = Object.fromEntries(formData);
     
-      fetch(`${API}/delete-attendance`, {
+      fetch(`${API}/delete-attendance?schoolName=${schoolName}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
+        body: JSON.stringify({ ...payload, schoolName })
       })
       .then(res => res.json())
       .then(data => {
@@ -307,23 +703,51 @@
 
     
     function fetchAttendanceSummary() {
-      fetch(`${API}/attendance-summary`)
-        .then(res => res.json())
+      const container = document.getElementById("attendanceSummary");
+      container.innerHTML = `<div class="loading">Loading attendance data...</div>`;
+      
+      fetch(`${API}/attendance-summary?schoolName=${encodeURIComponent(schoolName)}`)
+        .then(res => {
+          if (!res.ok) throw new Error("Failed to fetch attendance data");
+          return res.json();
+        })
         .then(data => {
-          const container = document.getElementById("attendanceSummary");
-    
-          if (!data.success || !data.summary.length) {
-            container.innerHTML = "No attendance records.";
+          if (!data.success || !data.summary || data.summary.length === 0) {
+            container.innerHTML = "<div>No attendance records found</div>";
             return;
           }
-    
-          let summaryHTML = `<table><thead><tr><th>Roll No</th><th>Subject</th><th>Days Present</th></tr></thead><tbody>`;
+          
+          let summaryHTML = `
+            <table>
+              <thead>
+                <tr>
+                  <th>Roll No</th>
+                  <th>Name</th>
+                  <th>Subject</th>
+                  <th>Days Present</th>
+                </tr>
+              </thead>
+              <tbody>`;
+          
           data.summary.forEach(row => {
-            summaryHTML += `<tr><td>${row.studentRoll}</td><td>${row.subject}</td><td>${row.total_days}</td></tr>`;
+            summaryHTML += `
+              <tr>
+                <td>${row.studentRoll || 'N/A'}</td>
+                <td>${row.name || 'N/A'}</td>
+                <td>${row.subject || 'N/A'}</td>
+                <td>${row.total_days || 0}</td>
+              </tr>`;
           });
+          
           summaryHTML += `</tbody></table>`;
-    
           container.innerHTML = summaryHTML;
+        })
+        .catch(error => {
+          container.innerHTML = `
+            <div class="error">
+              Error loading attendance data: ${error.message || 'Unknown error'}
+            </div>`;
+          console.error("Attendance summary error:", error);
         });
     }
     
