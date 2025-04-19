@@ -72,7 +72,7 @@ app.post("/submit-feedback", async (req, res) => {
     // Add timeout to the query
     const timeoutPromise = new Promise((_, reject) => 
       setTimeout(() => reject(new Error("Database timeout")), 8000
-    );
+    ));
 
     const queryPromise = query("INSERT INTO feedback (message) VALUES (?)", [message]);
     
