@@ -29,7 +29,7 @@ Smart Merit is a web platform designed to recognize and support meritorious stud
 - Backend: **Node.js, Express.js**
 - Database: **MySQL**
 - AI API: **OpenAI GPT-3.5/4 API**
-- Hosting: **Vercel** (for demo API)
+- Hosting: **Vercel** (for demo API), **Netlify** (for Frontend) and **freedb_tech** (for database)
 
 ---
 
@@ -44,4 +44,8 @@ Contributions are welcome! Fork the repo, make changes, and submit a PR.
 - 🔹 Developer: [Sagnik Saha](mailto:sahasagnik279@gmail.com)
 - 🔹 Organization: Tech Tots
 - 🔹 Year: 2025 Research Poster Project
-# ⚠️ 🚧 Heads up! This project isn’t fully cooked yet 🍳 — still in the oven and getting better every day. Stick around for more awesome updates! 🚀😄. More features and improvements coming soon! 🚧✨
+
+---
+
+
+# ⚠️🚧 Heads up! This project’s still cooking 🍳 — cool stuff (updates) coming soon! 🚀✨
