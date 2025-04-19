@@ -30,6 +30,8 @@ const pool = mysql.createPool({
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
   port: process.env.DB_PORT || 3306,
+  connectTimeout: 5000,
+  acquireTimeout: 5000 
 });
 
 const openai = new OpenAI({
@@ -60,8 +62,6 @@ const query = (sql, values) => {
 };
 
 
-
-//send feedback
 app.post("/submit-feedback", async (req, res) => {
   try {
     const { message } = req.body;
@@ -69,17 +69,26 @@ app.post("/submit-feedback", async (req, res) => {
       return res.status(400).json({ error: "Feedback cannot be empty" });
     }
 
-    await query("INSERT INTO feedback (message) VALUES (?)", [message]);
-    res.status(201).json({ message: "Thank you for sending us feedback!" });
+    // Add timeout to the query
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error("Database timeout")), 8000
+    );
+
+    const queryPromise = query("INSERT INTO feedback (message) VALUES (?)", [message]);
+    
+    await Promise.race([queryPromise, timeoutPromise]);
+    
+    res.status(201).json({ message: "Thank you for your feedback!" });
     
   } catch (err) {
+    console.error("Feedback error:", err);
     res.status(500).json({ 
-      error: "Database error", 
-      details: process.env.NODE_ENV === 'development' ? err.message : undefined 
+      error: err.message.includes("timeout") 
+        ? "Operation took too long, please try again" 
+        : "Failed to submit feedback"
     });
   }
 });
-
 
 //-------STUDENT PORTAL------------
 app.get("/studentdetails", async (req, res) => {
