@@ -1,21 +1,16 @@
 {
-  "name": "smartmerit",
+  "name": "smartmerit-backend",
   "version": "1.0.0",
-  "main": "script.js",
+  "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "dependencies": {
-    "body-parser": "^2.2.0",
     "cors": "^2.8.5",
-    "dotenv": "^16.5.0",
-    "express": "^5.1.0",
-    "mysql2": "^3.14.0",
-    "openai": "^4.95.0"
-  },
-  "description": ""
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "mysql2": "^3.6.0",
+    "openai": "^4.28.0",
+    "body-parser": "^1.20.2"
+  }
 }
