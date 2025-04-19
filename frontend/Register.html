@@ -36,73 +36,89 @@
                 <button type="reset">Reset</button>
             </div>
         </form>
-
+        
         <form onsubmit="loginTeacher(event)">
-            <div class="reg">
-                <img src="teacher.gif" alt="teacher image">
-                <h4>Teacher Portal</h4>
-                <label for="teacherName">Name : </label>
-                <input type="text" id="teacherName" placeholder="Enter Name" required>
-                <label for="teacherPassword">Password : </label>
-                <input type="password" id="teacherPassword" placeholder="Enter Password" required>
-                <label for="teacherSchool">School Name : </label>
-                <input type="text" id="teacherSchool" placeholder="Enter School Name" required>
-                <label for="teacherSubject">Subject : </label>
-                <input type="text" id="teacherSubject" placeholder="Subject Name" required>
-                <label for="teacherBatch">Batch Id : </label>
-                <input type="text" maxlength="6" name="teacherBatch" placeholder="12***6" required><br><br><br>
-                <button type="submit">Submit</button>&nbsp;&nbsp;&nbsp;&nbsp;
-                <button type="reset">Reset</button>
-            </div>
+          <div class="reg">
+            <img src="teacher.gif" alt="teacher image">
+            <h4>Teacher Portal</h4>
+            <label for="teacherName">Name : </label>
+            <input type="text" id="teacherName" placeholder="Enter Name" name="teacherName" required>
+            <label for="teacherPassword">Password : </label>
+            <input type="password" id="teacherPassword" placeholder="Enter Password" name="teacherPassword" required>
+            <label for="teacherSchool">School Name : </label>
+            <input type="text" id="teacherSchool" placeholder="Enter School Name" name="teacherSchool" required>
+            <label for="teacherSubject">Subject : </label>
+            <input type="text" id="teacherSubject" placeholder="Subject Name" name="teacherSubject" required>
+            <label for="teacherBatch">Batch Id : </label>
+            <input type="text" id="teacherBatch" maxlength="6" name="teacherBatch" placeholder="12***6" required><br><br><br>
+            <button type="submit">Submit</button>&nbsp;&nbsp;&nbsp;&nbsp;
+            <button type="reset">Reset</button>
+          </div>
         </form>
+        
 
         <form onsubmit="loginSchool(event)">
             <div class="reg">
                 <img src="school.gif" alt="school image">
                 <h4>School / Institution Portal</h4>
                 <label for="schoolName">School Name : </label>
-                <input type="text" id="schoolName" placeholder="Enter School Name" required>
+                <input type="text" id="schoolName" placeholder="Enter School Name" name="schoolName" required>
                 <label for="schoolPassword">Password : </label>
-                <input type="password" id="schoolPassword" placeholder="Enter Password" required>
+                <input type="password" id="schoolPassword" placeholder="Enter Password" name="schoolPassword" required>
                 <label for="schoolId">School Id : </label>
-                <input type="text" maxlength="6" name="schoolId" placeholder="12***6" required><br><br><br>
+                <input type="text" maxlength="6" name="schoolId" placeholder="12***6" id="schoolId" required><br><br><br>
                 <button type="submit">Submit</button>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                 <button type="reset">Reset</button>
             </div>
         </form>
     </div>
     <script>
-        const API = "http://localhost:3000"; // Replace with deployed API if needed
+        const API = "https://smart-merit.vercel.app";
+        //const API = "http://localhost:3000"
     
         function loginStudent(e) {
           e.preventDefault();
           const name = document.getElementById("studentName").value;
           const password = document.getElementById("studentPassword").value;
           const roll = document.getElementById("studentRoll").value;
-    
+          const school = document.getElementById("studentSchool").value;
+        
           fetch(`${API}/student`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ studentName: name, studentPassword: password, studentRoll: roll })
+            body: JSON.stringify({ studentName: name, studentPassword: password, studentRoll: roll , studentSchool:school})
           })
-          .then(res => res.json())
+          .then(async res => {
+            if (!res.ok) {
+              const text = await res.text();
+              console.error("Server returned an error:", text);
+              throw new Error(`HTTP error ${res.status}`);
+            }
+            return res.json();
+          })
           .then(data => {
             if (data.success) {
-                // ✅ Store the roll number in session storage
-                sessionStorage.setItem("studentRoll", roll);
-                alert(`✅ Welcome ${name} to the portal`);
-                window.location.href = "Student.html";
+              sessionStorage.setItem("studentRoll", roll);
+              sessionStorage.setItem("studentSchool",school)
+              alert(`✅ Welcome ${name} to the portal`);
+              window.location.href = "Student.html";
             } else {
               alert("❌ " + data.message);
             }
+          })
+          .catch(err => {
+            alert("Something went wrong. Please try again.");
+            console.error(err);
           });
         }
-    
+        
         function loginTeacher(e) {
           e.preventDefault();
+  
           const name = document.getElementById("teacherName").value;
           const password = document.getElementById("teacherPassword").value;
-          const batch = document.querySelector("input[name='teacherBatch']").value;
+          const batch = document.getElementById("teacherBatch").value;
+          const school = document.getElementById("teacherSchool").value;
         
           fetch(`${API}/teacher`, {
             method: "POST",
@@ -110,15 +126,23 @@
             body: JSON.stringify({
               teacherName: name,
               teacherPassword: password,
-              teacherBatch: batch
+              teacherBatch: batch,
+              teacherSchool:school
             })
           })
-          .then(res => res.json())
+          .then(async res => {
+            if (!res.ok) {
+              const text = await res.text();
+              console.error("Server returned an error:", text);
+              throw new Error(`HTTP error ${res.status}`);
+            }
+            return res.json();
+          })
           .then(data => {
             if (data.success) {
               sessionStorage.setItem("teacherName", name);
-              sessionStorage.setItem("teacherBatch", batch); // Optional for future use
-              alert(`✅ Welcome ${name} to the portal`);
+              sessionStorage.setItem("teacherSchool", school);
+              alert(`✅ Welcome ${name} to the portal from ${school}`);
               window.location.href = "Teacher.html";
             } else {
               alert("❌ " + data.message);
@@ -129,28 +153,40 @@
             console.error(err);
           });
         }
-    
+        
         function loginSchool(e) {
           e.preventDefault();
           const name = document.getElementById("schoolName").value;
           const password = document.getElementById("schoolPassword").value;
           const id = document.getElementById("schoolId").value;
-    
+        
           fetch(`${API}/school`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ schoolName: name, schoolPassword: password, schoolId: id })
           })
-          .then(res => res.json())
+          .then(async res => {
+            if (!res.ok) {
+              const text = await res.text();
+              console.error("Server returned an error:", text);
+              throw new Error(`HTTP error ${res.status}`);
+            }
+            return res.json();
+          })
           .then(data => {
+            sessionStorage.setItem("schoolName", name);
             if (data.success) {
-                alert(`✅ Welcome ${name} to the portal`);
-                window.location.href = "School.html";
+              alert(`✅ Welcome ${name} to the portal`);
+              window.location.href = "School.html";
             } else {
               alert("❌ " + data.message);
             }
+          })
+          .catch(err => {
+            alert("Something went wrong. Please try again.");
+            console.error(err);
           });
-        }
+        }        
       </script>
 </body>
 </html>
