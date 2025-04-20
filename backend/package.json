@@ -6,12 +6,12 @@
     "start": "node server.js"
   },
   "dependencies": {
-    "body-parser": "^1.20.2",
+    "body-parser": "^1.20.3",
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
     "mysql2": "^3.14.0",
-    "nodemailer": "^6.9.8",
+    "nodemailer": "^6.10.1",
     "openai": "^4.95.1",
     "path-to-regexp": "^8.2.0"
   }
