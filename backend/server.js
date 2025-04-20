@@ -933,6 +933,13 @@ app.post("/mark-teacher-attendance", async (req, res) => {
   }
 });
 
+app.use((req, res) => {
+  res.status(404).json({ 
+    success: false, 
+    message: "Endpoint not found" 
+  });
+});
+
 // Root Route
 app.get("/", (req, res) => {
   res.send("📚 SmartMerit Backend is Running!");
