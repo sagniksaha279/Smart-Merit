@@ -4,7 +4,7 @@ const mysql = require('mysql2');
 const cors = require("cors");
 const bodyParser = require("body-parser");
 const OpenAI = require("openai");
-const path = require("path");  // Add this line
+const path = require("path"); 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
