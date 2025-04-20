@@ -121,7 +121,7 @@ app.post("/submit-feedback", async (req, res) => {
     }
 
     await query("INSERT INTO feedback (message) VALUES (?)", [message]);
-    res.status(201).json({ message: "Thank you for sending us feedback!" });
+    res.status(201).json({ message: "Thank you for sending us feedback! 😊 It helps us get better and better! 🚀✨" });
   } catch (err) {
     res.status(500).json({ error: "Database error", details: err.message });
   }
