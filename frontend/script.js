@@ -1,28 +1,48 @@
-function sendEmailAndRedirect(){
-    const subject = encodeURIComponent("Request for SmartMerit Free Trial Access");
-    const body = encodeURIComponent(`Dear SmartMerit Team,
+document.getElementById("trialForm").addEventListener("submit", function(e) {
+    e.preventDefault();
+    
+    // Show loading state
+    const submitBtn = this.querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
+    submitBtn.textContent = "Sending...";
+    
+    const formData = new FormData(this);
+    const data = Object.fromEntries(formData.entries());
 
-                I would like to request access to the free trial version of SmartMerit. Please find my details below:
-
-                Name: [Your Full Name]  
-                Email: [Your Email]  
-                Phone: [Your Phone Number]  
-                Organization/School: [Your Institution Name]  
-                Designation: [Your Role, e.g., Teacher, Principal, Admin]  
-                Purpose of Use: [Brief explanation, e.g., Track student performance, test features]  
-                Expected Number of Students: [Less Than 50 students]  
-                Preferred Trial Start Date: [DD-MM-YYYY]
-
-                Looking forward to your confirmation.
-
-                Best regards,  
-                [Your Name]`
-);
-
-    const mailtoLink = `mailto:mesagnik279@gmail.com?subject=${subject}&body=${body}`;
-    window.location.href = mailtoLink;
-}
-
+    fetch("https://smart-merit.vercel.app/request-trial", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data)
+    })
+    .then(res => res.json())
+    .then(response => {
+      // Show success message
+      document.getElementById("successMessage").style.display = "block";
+      document.getElementById("trialForm").reset();
+      
+      // Reset button
+      submitBtn.disabled = false;
+      submitBtn.textContent = "Send Request";
+      
+      // Hide form and show success after 3 seconds
+      setTimeout(() => {
+        document.getElementById("trialForm").style.display = "none";
+      }, 3000);
+    })
+    .catch(err => {
+      console.error("Request failed:", err);
+      alert("Something went wrong. Please try again.");
+      submitBtn.disabled = false;
+      submitBtn.textContent = "Send Request";
+    });
+  });
+  
+  // Enhance date input for better UX
+  const startDateInput = document.getElementById("startDate");
+  const today = new Date().toISOString().split('T')[0];
+  startDateInput.min = today;
+  startDateInput.value = today;
+  
 //how it works portion
 const openButton = document.querySelectorAll('[data-htw-target]')
 const closeButton = document.querySelectorAll('[data-htw-close]')
@@ -65,21 +85,23 @@ function closeContent(content){
     overlay.classList.remove('active')
 }
 
-document.getElementById("feedbackForm").addEventListener("submit", function(e) {
-    e.preventDefault();
-    const feedback = document.getElementById("feedback").value;
-    const api = "https://smart-merit.vercel.app";
-    fetch(`${api}/submit-feedback`, {
+document.getElementById("feedbackForm").addEventListener("submit", function(event) {
+    event.preventDefault();
+
+    const message = document.getElementById("feedback").value;
+    const API_BASE_URL = "https://smart-merit.vercel.app"; 
+
+    fetch(`${API_BASE_URL}/submit-feedback`, { //change
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ feedback })
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ message })
     })
-    .then(res => res.json())
+    .then(response => response.json())
     .then(data => {
-        document.getElementById("feedbackMessage").textContent = data.message;
-        this.reset();
+        alert(data.message);
+        document.getElementById("feedbackForm").reset();
     })
-    .catch(() => {
-        document.getElementById("feedbackMessage").textContent = "Something went wrong. Please try again later.";
-    });
+    .catch(error => console.error("Error:", error));
 });
