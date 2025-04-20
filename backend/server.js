@@ -35,9 +35,6 @@ const pool = mysql.createPool({
   queueLimit: 0,
 });
 
-module.exports = pool.promise();
-
-
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 });
