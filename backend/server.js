@@ -4,7 +4,7 @@ const mysql = require('mysql2');
 const cors = require("cors");
 const bodyParser = require("body-parser");
 const OpenAI = require("openai");
-//const nodemailer = require("nodemailer");
+const nodemailer = require("nodemailer");
 const path = require("path"); 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -13,9 +13,9 @@ const corsOptions = {
   origin: "https://smartmerit.netlify.app",
   methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true,
+  optionsSuccessStatus: 204
 };
 app.use(cors(corsOptions));
-app.options("*", cors(corsOptions));
 app.get("/favicon.ico", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "favicon.ico"));
 });
