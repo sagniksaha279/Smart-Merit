@@ -4,6 +4,7 @@ const mysql = require('mysql2');
 const cors = require("cors");
 const bodyParser = require("body-parser");
 const OpenAI = require("openai");
+const nodemailer = require("nodemailer");
 const path = require("path"); 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -61,6 +62,54 @@ const query = (sql, values) => {
     });
   });
 };
+
+
+//send email
+app.post("/request-trial", async (req, res) => {
+const { name, email, phone, organization, designation, purpose, students, startDate } = req.body;
+  if (!name || !email || !phone || !organization || !designation || !purpose || !students || !startDate) {
+    return res.status(400).json({ success: false, message: "All fields are required" });
+  }
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.SMARTMERIT_EMAIL,
+    pass: process.env.SMARTMERIT_APP_PASSWORD
+  }
+});
+const mailOptions = {
+from: email,
+to: "sahasagnik279@gmail.com",
+subject: "Request for SmartMerit Free Trial Access",
+text: `
+Dear SmartMerit Team,
+
+I would like to request access to the free trial version of SmartMerit. Please find my details below:
+
+Name: ${name}
+Email: ${email}
+Phone: ${phone}
+Organization/School: ${organization}
+Designation: ${designation}
+Purpose of Use: ${purpose}
+Expected Number of Students: ${students}
+Preferred Trial Start Date: ${startDate}
+
+Looking forward to your confirmation.
+
+Best regards,
+${name}
+    `
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    res.json({ success: true, message: "Trial request sent successfully!" });
+  } catch (error) {
+    console.error("Email error:", error);
+    res.status(500).json({ success: false, message: "Failed to send email" });
+  }
+});
 
 
 // Feedback API
