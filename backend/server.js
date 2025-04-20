@@ -14,7 +14,7 @@ const corsOptions = {
   credentials: true,
 };
 app.use(cors(corsOptions));
-app.options("*", cors(corsOptions)); 
+app.options("*", cors(corsOptions));
 app.get("/favicon.ico", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "favicon.ico"));
 });
