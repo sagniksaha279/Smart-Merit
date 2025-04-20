@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Request Free Trial - Smart Merit</title>
+  <link rel="icon" href="tech_tots_logo.png" type="image/png">
+  <style>
+    :root {
+      --primary: #4361ee;
+      --secondary: #3f37c9;
+      --accent: #4895ef;
+      --light: #f8f9fa;
+      --dark: #212529;
+      --success: #4cc9f0;
+      --border-radius: 8px;
+      --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      --transition: all 0.3s ease;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: #f5f7ff;
+      color: var(--dark);
+      line-height: 1.6;
+      padding: 20px;
+    }
+    
+    .container {
+      max-width: 800px;
+      margin: 40px auto;
+      background: white;
+      border-radius: var(--border-radius);
+      box-shadow: var(--box-shadow);
+      overflow: hidden;
+    }
+    
+    .header {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: white;
+      padding: 30px;
+      text-align: center;
+    }
+    
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 10px;
+      font-weight: 600;
+    }
+    
+    .subtitle {
+      font-weight: 300;
+      opacity: 0.9;
+    }
+    
+    .form-container {
+      padding: 30px;
+    }
+    
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+    }
+    
+    .form-group {
+      margin-bottom: 20px;
+    }
+    
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 500;
+      color: var(--dark);
+    }
+    
+    input, select, textarea {
+      width: 100%;
+      padding: 12px 15px;
+      border: 1px solid #ddd;
+      border-radius: var(--border-radius);
+      font-family: 'Poppins', sans-serif;
+      font-size: 16px;
+      transition: var(--transition);
+    }
+    
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(72, 149, 239, 0.2);
+    }
+    
+    button {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 15px 30px;
+      border-radius: var(--border-radius);
+      font-size: 16px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: var(--transition);
+      width: 100%;
+      margin-top: 10px;
+    }
+    
+    button:hover {
+      background: var(--secondary);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+    }
+    
+    .full-width {
+      grid-column: 1 / -1;
+    }
+    
+    .success-message {
+      display: none;
+      background: rgba(76, 201, 240, 0.1);
+      border: 1px solid var(--success);
+      color: var(--success);
+      padding: 15px;
+      border-radius: var(--border-radius);
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    
+    @media (max-width: 768px) {
+      .container {
+        margin: 20px auto;
+      }
+      
+      .header {
+        padding: 20px;
+      }
+      
+      h1 {
+        font-size: 1.5rem;
+      }
+      
+      .form-container {
+        padding: 20px;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Request SmartMerit Free Trial</h1>
+      <p class="subtitle">✨ Discover our platform with no obligation</p>
+    </div>
+    <div class="form-container">
+      <div id="successMessage" class="success-message">
+        Thank you! Your request has been submitted. We'll contact you shortly.
+      </div>
+      <form id="trialForm" class="form-grid">
+        <div class="form-group">
+          <label for="name">Your Name</label>
+          <input type="text" id="name" name="name" placeholder="John Doe" required>
+        </div>
+        <div class="form-group">
+          <label for="email">Email Address</label>
+          <input type="email" id="email" name="email" placeholder="john@example.com" required>
+        </div>
+        <div class="form-group">
+          <label for="phone">Phone Number</label>
+          <input type="tel" id="phone" name="phone" placeholder="+91****14785" required>
+        </div>
+        <div class="form-group">
+          <label for="organization">Institution / School</label>
+          <input type="text" id="organization" name="organization" placeholder="ABC University" required>
+        </div>
+        <div class="form-group">
+          <label for="designation">Your Role</label>
+          <input type="text" id="designation" name="designation" placeholder="Professor/Administrator" required>
+        </div>
+        <div class="form-group">
+          <label for="purpose">Purpose of Use</label>
+          <input type="text" id="purpose" name="purpose" placeholder="Course management/Student evaluation" required>
+        </div>
+        <div class="form-group">
+          <label for="students">Expected Number of Students</label>
+          <input type="number" id="students" name="students" placeholder="50" required>
+        </div>
+        <div class="form-group">
+          <label for="startDate">Preferred Start Date</label>
+          <input type="date" id="startDate" name="startDate" required>
+        </div>
+        <div class="form-group full-width">
+          <button type="submit">Send Request</button>
+        </div>
+      </form>
+    </div>
+  </div>
+    <script src="script.js"></script>
+</body>
+</html>
