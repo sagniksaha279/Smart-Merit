@@ -1,15 +1,20 @@
 require("dotenv").config();
 const express = require("express");
-const mysql = require('mysql2');
+const mysql = require("mysql2");
 const cors = require("cors");
 const OpenAI = require("openai");
 const nodemailer = require("nodemailer");
-const path = require("path"); 
+const path = require("path");
+
 const app = express();
+
 app.use(cors());
-app.use(express.static(path.join(__dirname, "../backend/public")));
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(bodyParser.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+
+// Static files
+const publicPath = path.join(__dirname, "../backend/public");
+app.use(express.static(publicPath));
 
 //DB connection
 const pool = mysql.createPool({  
