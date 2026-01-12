@@ -27,9 +27,6 @@ const pool = mysql.createPool({
   queueLimit: 0,
 });
 
-module.exports = pool.promise();
-
-
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 });
@@ -37,12 +34,12 @@ const openai = new OpenAI({
 pool.getConnection((err, connection) => {
   if (err) {
     console.error("❌ DB connection failed:", err.message);
-    process.exit(1);
   } else {
     console.log("✅ Connected to SmartMerit DB");
     connection.release();
   }
 });
+
 
 // Helper function for database queries
 const query = (sql, values) => {
