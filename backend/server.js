@@ -7,7 +7,6 @@ const OpenAI = require("openai");
 const nodemailer = require("nodemailer");
 const path = require("path"); 
 const app = express();
-const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.get("/favicon.ico", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "favicon.ico"));
@@ -933,7 +932,4 @@ app.get("/", (req, res) => {
   res.send("📚 SmartMerit Backend is Running!");
 });
 
-// Start Server
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
-});
+module.exports = app;
