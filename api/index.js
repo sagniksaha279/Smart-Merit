@@ -8,9 +8,7 @@ const nodemailer = require("nodemailer");
 const path = require("path"); 
 const app = express();
 app.use(cors());
-app.get("/favicon.ico", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "favicon.ico"));
-});
+app.use(express.static(path.join(__dirname, "../backend/public")));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
