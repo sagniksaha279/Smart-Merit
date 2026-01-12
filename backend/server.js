@@ -8,14 +8,7 @@ const nodemailer = require("nodemailer");
 const path = require("path"); 
 const app = express();
 const PORT = process.env.PORT || 3000;
-
-const corsOptions = {
-  origin: "https://smartmerit.netlify.app",
-  methods: ["GET", "POST", "PUT", "DELETE"],
-  credentials: true,
-  optionsSuccessStatus: 204
-};
-app.use(cors(corsOptions));
+app.use(cors());
 app.get("/favicon.ico", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "favicon.ico"));
 });
@@ -30,11 +23,13 @@ const pool = mysql.createPool({
   database: process.env.DB_NAME,
   port: process.env.DB_PORT || 3306,
   connectTimeout: 10000,    
- // acquireTimeout: 10000,
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,
 });
+
+module.exports = pool.promise();
+
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
@@ -63,14 +58,15 @@ const query = (sql, values) => {
   });
 };
 
-
 //send email
 app.post("/request-trial", async (req, res) => {
-const { name, email, phone, organization, designation, purpose, students, startDate } = req.body;
+  const { name, email, phone, organization, designation, purpose, students, startDate } = req.body;
+
   if (!name || !email || !phone || !organization || !designation || !purpose || !students || !startDate) {
     return res.status(400).json({ success: false, message: "All fields are required" });
   }
-const transporter = nodemailer.createTransport({
+
+  const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
     user: process.env.SMARTMERIT_EMAIL,
@@ -110,7 +106,6 @@ ${name}
     res.status(500).json({ success: false, message: "Failed to send email" });
   }
 });
-
 
 // Feedback API
 app.post("/submit-feedback", async (req, res) => {
